@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
 	return {
         name: "Savoury",
-        description: "",
+        description: "Unlock your Flavor",
         start_url: "/",
         display: "standalone",
         icons: [
