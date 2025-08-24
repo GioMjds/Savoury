@@ -3,8 +3,7 @@ interface OtpCacheEntry {
 	hashedPassword: string;
 	firstName: string;
 	lastName: string;
-	age?: number;
-	username?: string;
+	username: string;
 	expiresAt: Date;
 }
 
@@ -26,9 +25,8 @@ export const otpStorage = {
 		email: string,
 		otp: string,
 		hashedPassword: string,
+		username: string,
 		ttlMinutes = 5,
-		username?: string,
-		age?: number
 	) => {
 		const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
 		otpCache.set(email, {
@@ -37,7 +35,6 @@ export const otpStorage = {
 			firstName,
 			lastName,
 			username,
-			age,
 			expiresAt,
 		});
 	},
@@ -46,10 +43,8 @@ export const otpStorage = {
 	validate: (email: string, userOtp: string) => {
 		const entry = otpCache.get(email);
 		if (!entry) return { valid: false, error: 'OTP not found' };
-		if (entry.otp !== userOtp)
-			return { valid: false, error: 'Invalid OTP' };
-		if (new Date() > entry.expiresAt)
-			return { valid: false, error: 'OTP expired' };
+		if (entry.otp !== userOtp) return { valid: false, error: 'Invalid OTP' };
+		if (new Date() > entry.expiresAt) return { valid: false, error: 'OTP expired' };
 		return {
 			valid: true,
 			data: {
@@ -57,7 +52,6 @@ export const otpStorage = {
 				firstName: entry.firstName,
 				lastName: entry.lastName,
 				username: entry.username,
-				age: entry.age,
 			},
 		};
 	},

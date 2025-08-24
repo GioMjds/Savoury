@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import RegisterPage from "./register";
 
 export const metadata: Metadata = {
     title: "Register",
@@ -6,5 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function Register() {
-    return 
+    return <RegisterPage />
 }

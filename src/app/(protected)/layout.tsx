@@ -1,23 +1,16 @@
-import Providers from '@/providers/tanstack-query';
 import '../globals.css';
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import Providers from '@/providers/tanstack-query';
+import { Kumbh_Sans } from 'next/font/google';
 
-const geistSans = Geist({
-	variable: '--font-geist-sans',
-	subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-	variable: '--font-geist-mono',
+const kumbhSans = Kumbh_Sans({
+	variable: '--font-kumbh-sans',
 	subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-	title: {
-		template: '%s | Savoury',
-		default: 'Savoury',
-	}
+	title: 'Savoury - Unlock your Flavor',
+	description: 'Your Modern Food Recipe Sharing Platform',
 };
 
 export default function RootLayout({
@@ -28,7 +21,7 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+				className={`${kumbhSans.variable} ${kumbhSans.style} antialiased`}
 			>
 				<Providers>{children}</Providers>
 			</body>
