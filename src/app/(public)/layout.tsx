@@ -1,8 +1,8 @@
-import Navbar from '@/layouts/Navbar';
 import '../globals.css';
-import Providers from '@/providers/tanstack-query';
 import type { Metadata } from 'next';
 import { Kumbh_Sans } from 'next/font/google';
+import Providers from '@/providers/tanstack-query';
+import Navbar from '@/layouts/Navbar';
 import Footer from '@/layouts/Footer';
 
 const kumbhSans = Kumbh_Sans({

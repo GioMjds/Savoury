@@ -17,8 +17,6 @@ import { auth } from '@/services/Auth';
 import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { LoginPayload } from '@/types/AuthResponse';
-import Skeleton from 'react-loading-skeleton';
-import 'react-loading-skeleton/dist/skeleton.css';
 
 const formVariants = {
 	hidden: { opacity: 0, y: 40 },
@@ -43,7 +41,7 @@ export default function LoginPage() {
 		formState: { errors },
 		setError,
 	} = useForm<LoginPayload>({
-		mode: 'onBlur',
+		mode: 'onSubmit',
 	});
 
 	const loginMutation = useMutation({
@@ -217,12 +215,7 @@ export default function LoginPage() {
 							whileTap={{ scale: 0.97 }}
 						>
 							{loginMutation.isPending ? (
-								<Skeleton
-									width={80}
-									height={20}
-									baseColor="#d8efd3"
-									highlightColor="#95d2b3"
-								/>
+								'Logging in...'
 							) : (
 								'Login'
 							)}
@@ -245,29 +238,6 @@ export default function LoginPage() {
 					</div>
 				</form>
 			</motion.div>
-			{/* Footer */}
-			<footer className="mt-4 text-center text-muted text-xs">
-				<Link
-					href="/recipes"
-					className="hover:text-primary transition-colors mx-2"
-				>
-					Explore Recipes
-				</Link>
-				|
-				<Link
-					href="/community"
-					className="hover:text-primary transition-colors mx-2"
-				>
-					Community
-				</Link>
-				|
-				<Link
-					href="/about"
-					className="hover:text-primary transition-colors mx-2"
-				>
-					About
-				</Link>
-			</footer>
 		</div>
 	);
 }

@@ -1,7 +1,7 @@
 import '../globals.css';
 import type { Metadata } from 'next';
-import Providers from '@/providers/tanstack-query';
 import { Kumbh_Sans } from 'next/font/google';
+import Providers from '@/providers/tanstack-query';
 
 const kumbhSans = Kumbh_Sans({
 	variable: '--font-kumbh-sans',
