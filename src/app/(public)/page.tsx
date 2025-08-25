@@ -2,12 +2,43 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import {
-	containerVariants,
-	itemVariants,
-	floatingVariants,
-	featuresContent,
-} from '@/constants/homepage';
+import { featuresContent } from '@/constants/homepage';
+import Link from 'next/link';
+
+const containerVariants = {
+	hidden: { opacity: 0 },
+	visible: {
+		opacity: 1,
+		transition: {
+			staggerChildren: 0.2,
+			delayChildren: 0.1,
+		},
+	},
+};
+
+const itemVariants = {
+	hidden: { y: 50, opacity: 0 },
+	visible: {
+		y: 0,
+		opacity: 1,
+		transition: {
+			type: 'spring' as const,
+			stiffness: 80,
+			damping: 12,
+		},
+	},
+};
+
+const floatingVariants = {
+	animate: {
+		y: [-10, 10, -10],
+		transition: {
+			duration: 6,
+			repeat: Infinity,
+			ease: 'easeInOut' as const,
+		},
+	},
+};
 
 export default function Home() {
 	return (
@@ -203,13 +234,12 @@ export default function Home() {
 						Join our community today and discover your next favorite recipe
 					</motion.p>
 					<motion.div variants={itemVariants}>
-						<motion.button
+						<Link
+							href='/register'
 							className="px-10 py-4 bg-white text-primary rounded-lg font-medium text-lg hover:bg-opacity-90 transition-all duration-200 shadow-lg"
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.98 }}
 						>
 							Get Started Now
-						</motion.button>
+						</Link>
 					</motion.div>
 				</div>
 

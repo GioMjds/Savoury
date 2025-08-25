@@ -36,7 +36,7 @@
 
 4\. **Data Silos \& Disorganization**
 
-\- Recipes are scattered across countless websites, apps, and even physical notebooks. This creates a data silo problem where a user's culinary knowledge is fragmented and disorganized. Savoury centralizes this information, creating a single, organized hub for all of a user's recipes and culinary inspiration.
+\- Recipes are scattered across countless websites, apps, and even physical notebooks. This creates a data silos problem where a user's culinary knowledge is fragmented and disorganized. Savoury centralizes this information, creating a single, organized hub for all of a user's recipes and culinary inspiration.
 
 
 
@@ -225,7 +225,7 @@ It matters because "Savoury" addresses key pain points in the food and technolog
 
 
 
-**Relationships:** 
+**Relationships:**
 
 * **User to Recipes:** A one-to-many relationship. One user can create many recipes.
 * **Recipe to Instructions:** A one-to-many relationship. One recipe has many numbered instructions.
@@ -283,44 +283,3 @@ It matters because "Savoury" addresses key pain points in the food and technolog
 
 * A composite index on (user\_id, recipe\_id) to enforce the unique constraint and prevent a user from rating the same recipe multiple times.
 * An index on recipe\_id to quickly calculate a recipe's average rating.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

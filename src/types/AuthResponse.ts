@@ -16,3 +16,14 @@ export interface OtpPayload {
     email: string;
     otp: string;
 }
+
+export interface ChangePasswordPayload {
+    email: string;
+    otp: string;
+    newPassword: string;
+    confirmPassword: string;
+}
+
+export interface ForgotPasswordEmailPayload {
+    email: string;
+}
