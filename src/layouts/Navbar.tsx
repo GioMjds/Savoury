@@ -1,12 +1,42 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { auth } from '@/services/Auth';
+import { useMutation } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
-export default function Navbar() {
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
+export interface NavbarProps {
+    userDetails?: {
+        profileImage?: string;
+        name?: string;
+        email?: string;
+        role?: string;
+        id?: string;
+    } | null;
+}
+
+export default function Navbar({ userDetails }: NavbarProps) {
+	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+    const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
+
+    const profileRef = useRef<HTMLDivElement | null>(null);
+
+    const router = useRouter();
+
+    const logoutMutation = useMutation({
+        mutationFn: auth.logout,
+        onSuccess: () => {
+            router.push('/');
+            router.prefetch('/');
+            router.refresh();
+        },
+        onError: (error) => {
+            console.error(`Logout failed: ${error}`);
+        }
+    });
 
 	return (
         <motion.header 

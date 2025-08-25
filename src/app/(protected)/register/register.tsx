@@ -11,6 +11,9 @@ import {
 	faCheck,
 	faUserPlus,
 	faLock,
+	faX,
+	faCheckCircle,
+	faXmarkCircle,
 } from '@fortawesome/free-solid-svg-icons';
 import { useState, useRef } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
@@ -18,6 +21,7 @@ import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '@/services/Auth';
 import { RegisterPayload, OtpPayload } from '@/types/AuthResponse';
+import { validatePassword } from '@/utils/regex';
 
 enum RegistrationSteps {
 	FORMS = 'forms',
@@ -69,6 +73,32 @@ const stepTransition = {
 export default function RegisterPage() {
 	const [passwordShow, setPasswordShow] = useState<boolean>(false);
 	const [confirmPassShow, setConfirmPassShow] = useState<boolean>(false);
+	const passwordRequirements = [
+		{
+			key: 'minLength8',
+			label: 'At least 8 characters',
+		},
+		{
+			key: 'lowerUpperDigit',
+			label: 'Contains uppercase, lowercase, and a digit',
+		},
+		{
+			key: 'lowerUpperDigitSpecial',
+			label: 'Contains uppercase, lowercase, digit, and special character',
+		},
+		{
+			key: 'strictAlphanumeric',
+			label: '8-16 chars, letters and digits only',
+		},
+		{
+			key: 'strongNoWhitespace',
+			label: '12+ chars, upper, lower, digit, special, no spaces',
+		},
+		{
+			key: 'noTripleRepeat',
+			label: 'No triple repeated characters',
+		},
+	];
 	const [step, setStep] = useState<RegistrationSteps>(RegistrationSteps.FORMS);
 	const [userEmail, setUserEmail] = useState<string>('');
 	const [otp, setOtp] = useState<string[]>(['', '', '', '', '']);
@@ -466,32 +496,63 @@ export default function RegisterPage() {
 									</div>
 
 									<div className="relative">
-										<label
-											htmlFor="password"
-											className="block text-sm font-medium text-foreground mb-1"
-										>
-											Password
-										</label>
+										<div className="flex items-center justify-between mb-1">
+											<label
+												htmlFor="password"
+												className="block text-sm font-medium text-foreground"
+											>
+												Password
+											</label>
+											{/* Password Validity Indicator */}
+											<div className="group ml-2">
+												<span className={validatePassword(password, 'lowerUpperDigitSpecial')
+														? 'text-green-500 px-2 py-1 rounded text-xs cursor-pointer'
+														: 'text-red-500 px-2 py-1 rounded text-xs cursor-pointer'
+													}
+												>
+													{validatePassword(password, 'lowerUpperDigitSpecial') 
+														? <FontAwesomeIcon icon={faCheckCircle} size="xl" /> 
+														: <FontAwesomeIcon icon={faXmarkCircle} size="xl" />}
+												</span>
+												<div className="absolute z-20 w-64 bg-white border border-border rounded shadow-lg p-3 text-xs left-1/2 -translate-x-1/2 mt-2 hidden group-hover:block">
+													<div className="font-semibold mb-2">Password Requirements:</div>
+													<ul className="space-y-1">
+														{passwordRequirements.map((req) => (
+															<li key={req.key} className="flex items-center gap-2">
+																<span className={validatePassword(password, req.key as any)
+																		? 'text-green-600 font-bold'
+																		: 'text-gray-400'
+																	}
+																>
+																	●
+																</span>
+																<span>{req.label}</span>
+															</li>
+														))}
+													</ul>
+												</div>
+											</div>
+										</div>
 										<motion.input
 											type={passwordShow ? 'text' : 'password'}
 											{...register('password', {
 												required: 'Password is required',
-												minLength: {
-													value: 6,
-													message: 'Password must be at least 6 characters',
-												},
+												validate: (value) =>
+													validatePassword(value, 'lowerUpperDigitSpecial') ||
+													'Password does not meet requirements',
 											})}
 											whileFocus={{ scale: 1.02 }}
 											className="w-full px-4 py-3 pr-12 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+											placeholder="Password"
 										/>
 										<motion.button
 											type="button"
 											onClick={() => setPasswordShow(!passwordShow)}
 											whileHover={{ scale: 1.1 }}
 											whileTap={{ scale: 0.9 }}
-											className="absolute right-3 top-9 text-muted hover:text-foreground transition-colors"
+											className="absolute cursor-pointer right-3 top-9 text-muted hover:text-foreground transition-colors"
 										>
-											<FontAwesomeIcon icon={passwordShow ? faEyeSlash : faEye} />
+											<FontAwesomeIcon icon={passwordShow ? faEyeSlash : faEye} size="xl" />
 										</motion.button>
 										{errors.password && (
 											<motion.p
@@ -512,7 +573,7 @@ export default function RegisterPage() {
 											Confirm Password
 										</label>
 										<motion.input
-                                            type={confirmPassShow ? 'text' : 'password'}
+											type={confirmPassShow ? 'text' : 'password'}
 											{...register('confirmPassword', {
 												required: 'Please confirm your password',
 												validate: (value) =>
@@ -520,15 +581,16 @@ export default function RegisterPage() {
 											})}
 											whileFocus={{ scale: 1.02 }}
 											className="w-full px-4 py-3 pr-12 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
+											placeholder="Confirm Password"
 										/>
 										<motion.button
 											type="button"
 											onClick={() => setConfirmPassShow(!confirmPassShow)}
 											whileHover={{ scale: 1.1 }}
 											whileTap={{ scale: 0.9 }}
-											className="absolute right-3 top-9 text-muted hover:text-foreground transition-colors"
+											className="absolute cursor-pointer right-3 top-9 text-muted hover:text-foreground transition-colors"
 										>
-											<FontAwesomeIcon icon={confirmPassShow ? faEyeSlash : faEye} />
+											<FontAwesomeIcon icon={confirmPassShow ? faEyeSlash : faEye} size="xl" />
 										</motion.button>
 										{errors.confirmPassword && (
 											<motion.p
@@ -688,7 +750,7 @@ export default function RegisterPage() {
 									disabled={otpMutation.isPending}
 									whileHover={{ scale: 1.02 }}
 									whileTap={{ scale: 0.98 }}
-									className="w-full bg-primary hover:bg-primary-hover text-white font-medium py-3 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+									className="w-full cursor-pointer bg-primary hover:bg-primary-hover text-white font-medium py-3 px-4 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									{otpMutation.isPending ? (
 										<motion.div
@@ -716,7 +778,7 @@ export default function RegisterPage() {
 										disabled={resendOtpMutation.isPending}
 										whileHover={{ scale: 1.05 }}
 										whileTap={{ scale: 0.95 }}
-										className="text-sm font-medium text-primary hover:text-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+										className="text-sm cursor-pointer font-medium text-primary hover:text-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										{resendOtpMutation.isPending
 											? 'Sending...'
