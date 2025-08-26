@@ -1,4 +1,3 @@
-
 export const featuresContent = [
 	{
 		icon: '📚',
@@ -17,4 +16,11 @@ export const featuresContent = [
 		description:
 			'Get personalized recommendations based on your taste preferences',
 	},
+];
+
+export const navigationItems = [
+	{ href: '/about', label: 'About' },
+	{ href: '/privacy', label: 'Privacy Policy' },
+	{ href: '/community', label: 'Community' },
+	{ href: '/contact', label: 'Contact Us' },
 ];

@@ -47,7 +47,7 @@ export default function LoginPage() {
 	const loginMutation = useMutation({
 		mutationFn: (payload: LoginPayload) => auth.login(payload),
 		onSuccess: () => {
-			router.push('/');
+			router.push('/feed');
 		},
 		onError: (error: Error) => {
 			const msg = error.message || 'Login failed. Please try again.';

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import FeedPage from "./feed";
+import { feed } from "@/services/Feed";
 
 export const metadata: Metadata = {
     title: "Your Feed",
@@ -12,10 +13,7 @@ export default async function Feed() {
 
     await queryClient.prefetchQuery({
         queryKey: ['feed'],
-        queryFn: async () => {
-            const res = await fetch('/api/feed');
-            return res.json();
-        }
+        queryFn: feed.fetchFeed,
     });
 
     return (

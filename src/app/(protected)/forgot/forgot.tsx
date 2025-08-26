@@ -5,6 +5,12 @@ import Image from 'next/image';
 import Form from "next/form";
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useState, useRef } from 'react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
+import { auth } from '@/services/Auth';
+import { validatePassword, validateEmail } from '@/utils/regex';
 import {
 	faEye,
 	faEyeSlash,
@@ -16,17 +22,11 @@ import {
 	faShieldAlt,
 	faSpinner,
 } from '@fortawesome/free-solid-svg-icons';
-import { useState, useRef } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
-import { auth } from '@/services/Auth';
 import {
 	ForgotPasswordEmailPayload,
 	OtpPayload,
 	ChangePasswordPayload,
 } from '@/types/AuthResponse';
-import { validatePassword, validateEmail } from '@/utils/regex';
 
 enum ForgotPasswordSteps {
 	EMAIL = 'email',
@@ -121,8 +121,7 @@ export default function ForgotPasswordPage() {
 			setOtp(['', '', '', '', '']);
 		},
 		onError: (error: Error) => {
-			const msg =
-				error.message || 'Failed to send OTP. Please try again.';
+			const msg = error.message || 'Failed to send OTP. Please try again.';
 			if (msg.includes('User not found')) {
 				setEmailError('email', {
 					type: 'manual',
@@ -154,8 +153,7 @@ export default function ForgotPasswordPage() {
 			router.refresh();
 		},
 		onError: (error: Error) => {
-			const msg =
-				error.message || 'Failed to reset password. Please try again.';
+			const msg = error.message || 'Failed to reset password. Please try again.';
 			if (msg.includes('Passwords do not match')) {
 				setPasswordError('confirmPassword', {
 					type: 'manual',

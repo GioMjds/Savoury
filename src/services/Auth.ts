@@ -1,7 +1,7 @@
 import { httpClient } from "@/configs/axios";
 import { RegisterPayload, LoginPayload, OtpPayload, ChangePasswordPayload, ForgotPasswordEmailPayload } from "@/types/AuthResponse";
 
-export class AuthService {
+class AuthService {
     async login(payload: LoginPayload) {
         return httpClient.post('/auth?action=login', payload);
     }
