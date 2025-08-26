@@ -28,9 +28,9 @@ export default async function RootLayout({
 	}
 
 	return (
-		<>
+		<main>
 			<Navbar userDetails={userDetails} />
 			{children}
-		</>
+		</main>
 	);
 }

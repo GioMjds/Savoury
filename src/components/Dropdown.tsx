@@ -51,9 +51,7 @@ const Dropdown: FC<CustomDropdownProps> = ({
 		};
 
 		document.addEventListener('mousedown', handleClickOutside);
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
+		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, [onClose]);
 
 	const getPositionClasses = () => {

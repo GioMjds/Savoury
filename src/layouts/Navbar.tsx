@@ -7,11 +7,11 @@ import { auth } from '@/services/Auth';
 import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import SearchBar from '@/components/SearchBar';
-import Dropdown from '@/components/Dropdown';
 import { navigationItems } from '@/constants/homepage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCog, faDoorOpen, faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import SearchBar from '@/components/SearchBar';
+import Dropdown from '@/components/Dropdown';
 
 export interface NavbarProps {
     userDetails?: {
@@ -20,7 +20,7 @@ export interface NavbarProps {
         username?: string;
         fullname?: string;
         profile_image?: string;
-    } | null;
+    };
 }
 
 export default function Navbar({ userDetails }: NavbarProps) {
@@ -73,12 +73,12 @@ export default function Navbar({ userDetails }: NavbarProps) {
             <nav className="container mx-auto px-4 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link prefetch href="/" className="flex items-center space-x-2">
+                    <Link prefetch href="/" className="flex items-center space-x-1">
                         <Image 
                             src="/savoury-logo.png" 
                             alt="Savoury Logo" 
-                            width={40} 
-                            height={40}
+                            width={65} 
+                            height={65}
                             className="drop-shadow-sm"
                         />
                         <span className="text-xl font-bold hidden sm:block text-primary">
@@ -88,7 +88,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
 
                     {/* Navigation Section - Conditional based on authentication */}
                     {userDetails ? (
-                        // Authenticated: Show SearchBar
                         <div className="hidden md:flex items-center flex-1 justify-center mx-8">
                             <SearchBar 
                                 onSearch={handleSearch}
@@ -130,7 +129,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                             <div className="relative" ref={profileRef}>
                                 <motion.button
                                     onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                                    className="flex items-center space-x-2 p-1 rounded-full hover:bg-accent transition-colors"
+                                    className="flex items-center cursor-pointer space-x-2 p-1 rounded-full hover:bg-accent transition-colors"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
@@ -139,6 +138,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             src={userDetails.profile_image as string}
                                             alt={userDetails.fullname as string}
                                             fill
+                                            sizes='48x48'
                                             className="object-cover"
                                         />
                                     </div>
@@ -165,11 +165,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             label: 'View Profile',
                                             href: `/profile/${userDetails.id}`,
                                             icon: <FontAwesomeIcon icon={faUserCircle} />
-                                        },
-                                        {
-                                            label: 'Settings',
-                                            href: '/settings',
-                                            icon: <FontAwesomeIcon icon={faCog} />
                                         },
                                         {
                                             label: logoutMutation.isPending ? 'Signing out...' : 'Sign Out',

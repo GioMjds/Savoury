@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import Form from 'next/form';
 import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -47,14 +48,13 @@ export default function LoginPage() {
 	const loginMutation = useMutation({
 		mutationFn: (payload: LoginPayload) => auth.login(payload),
 		onSuccess: () => {
-			router.push('/feed');
+			router.prefetch('/feed');
+			router.refresh();
 		},
 		onError: (error: Error) => {
 			const msg = error.message || 'Login failed. Please try again.';
 			const noUser = msg.includes('No user found');
-			const emptyFields = msg.includes(
-				'Email or username and password are required.'
-			);
+			const emptyFields = msg.includes('Email or username and password are required.');
 			const passwordInvalid = msg.includes('Invalid password');
 
 			if (noUser || emptyFields) {
@@ -124,7 +124,8 @@ export default function LoginPage() {
 				</div>
 
 				{/* Form */}
-				<form
+				<Form
+					action='/feed'
 					className="space-y-6"
 					onSubmit={handleSubmit(onSubmit)}
 					aria-label="Login form"
@@ -172,8 +173,7 @@ export default function LoginPage() {
 									required: 'Password is required',
 									minLength: {
 										value: 6,
-										message:
-											'Password must be at least 6 characters',
+										message: 'Password must be at least 6 characters',
 									},
 								})}
 								className="mt-1 block w-full px-5 py-3 border border-border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all"
@@ -225,18 +225,18 @@ export default function LoginPage() {
 					<div className="flex justify-between items-center text-sm mt-2">
 						<Link
 							href="/forgot"
-							className="text-primary hover:text-primary-hover transition-colors"
+							className="text-primary hover:text-primary-hover hover:underline transition-colors"
 						>
 							Forgot password?
 						</Link>
 						<Link
 							href="/register"
-							className="font-medium text-primary hover:text-primary-hover transition-colors"
+							className="text-primary hover:text-primary-hover hover:underline transition-colors"
 						>
 							Create account
 						</Link>
 					</div>
-				</form>
+				</Form>
 			</motion.div>
 		</div>
 	);
