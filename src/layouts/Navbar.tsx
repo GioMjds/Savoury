@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { navigationItems } from '@/constants/homepage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faBellConcierge, faPlus, faPlusCircle, faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from '@/components/SearchBar';
 import Dropdown from '@/components/Dropdown';
 
@@ -88,10 +88,44 @@ export default function Navbar({ userDetails }: NavbarProps) {
 
                     {/* Navigation Section - Conditional based on authentication */}
                     {userDetails ? (
-                        <div className="hidden md:flex items-center flex-1 justify-center mx-8">
+                        <div className="hidden md:flex items-center flex-1 justify-center mx-8 space-x-6">
+                            {/* Search Bar */}
                             <SearchBar 
                                 onSearch={handleSearch}
                             />
+                            {/* Post New Recipe Button */}
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.98 }}
+                            >   
+                                <Link
+                                    href="/new"
+                                    className="relative flex flex-col items-center p-2 rounded-lg text-foreground group-hover:text-primary-hover transition-colors group"
+                                    aria-label='Post a new recipe'
+                                >
+                                    <FontAwesomeIcon icon={faPlusCircle} size="xl" className="mb-1" />
+                                    <span className='block text-xs font-medium'>
+                                        Post
+                                    </span>
+                                </Link>
+                            </motion.div>
+
+                            {/* Notifications Button */}
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                <Link
+                                    href="/notifications"
+                                    className="relative flex flex-col items-center p-2 rounded-lg text-foreground group-hover:text-primary-hover transition-colors group"
+                                    aria-label="View notifications"
+                                >
+                                    <FontAwesomeIcon icon={faBell} size="xl" className="mb-1" />
+                                    <span className="block text-xs font-medium">
+                                        Notifications
+                                    </span>
+                                </Link>
+                            </motion.div>
                         </div>
                     ) : (
                         // Non-authenticated: Show navigation links
@@ -167,7 +201,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             icon: <FontAwesomeIcon icon={faUserCircle} />
                                         },
                                         {
-                                            label: logoutMutation.isPending ? 'Signing out...' : 'Sign Out',
+                                            label: logoutMutation.isPending ? 'Logging out...' : 'Log Out',
                                             icon: <FontAwesomeIcon icon={faSignOutAlt} />,
                                             onClick: handleLogout,
                                             variant: 'danger' as const,
@@ -228,6 +262,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                                 src={userDetails.profile_image || '/Default_pfp.jpg'}
                                                 alt={userDetails.fullname || 'User'}
                                                 fill
+                                                sizes="40px"
                                                 className="object-cover"
                                             />
                                         </div>
@@ -235,7 +270,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             <p className="text-sm font-medium text-foreground">
                                                 {userDetails.fullname}
                                             </p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-muted">
                                                 @{userDetails.username}
                                             </p>
                                         </div>
@@ -243,29 +278,51 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     <ul className="flex flex-col space-y-4 py-4">
                                         <li>
                                             <Link 
-                                                href={`/profile/${userDetails.id}`}
-                                                className="text-foreground hover:text-primary transition-colors font-medium py-2 block"
+                                                href="/recipes/new"
+                                                className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors font-medium py-2"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
-                                                View Profile
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                                </svg>
+                                                <span>Post New Recipe</span>
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link 
+                                                href={`/profile/${userDetails.id}`}
+                                                className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors font-medium py-2"
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                                <span>View Profile</span>
                                             </Link>
                                         </li>
                                         <li>
                                             <Link 
                                                 href="/feed" 
-                                                className="text-foreground hover:text-primary transition-colors font-medium py-2 block"
+                                                className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors font-medium py-2"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
-                                                My Feed
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+                                                </svg>
+                                                <span>My Feed</span>
                                             </Link>
                                         </li>
                                         <li>
                                             <Link 
-                                                href="/settings" 
-                                                className="text-foreground hover:text-primary transition-colors font-medium py-2 block"
+                                                href="/notifications" 
+                                                className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors font-medium py-2"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
-                                                Settings
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                                </svg>
+                                                <span>Notifications</span>
                                             </Link>
                                         </li>
                                     </ul>
@@ -276,9 +333,12 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                                 handleLogout();
                                             }}
                                             disabled={logoutMutation.isPending}
-                                            className="w-full text-left text-error hover:text-error font-medium py-2 disabled:opacity-50"
+                                            className="flex items-center space-x-3 w-full text-left text-error hover:text-error transition-colors font-medium py-2 disabled:opacity-50"
                                         >
-                                            {logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                            <span>{logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}</span>
                                         </button>
                                     </div>
                                 </>
@@ -286,54 +346,29 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                 // Non-authenticated mobile menu - Show navigation links
                                 <>
                                     <ul className="flex flex-col space-y-4">
-                                        <li>
-                                            <Link 
-                                                href="/" 
-                                                className="text-foreground hover:text-primary transition-colors font-medium py-2 block"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                Home
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link 
-                                                href="/recipes" 
-                                                className="text-foreground hover:text-primary transition-colors font-medium py-2 block"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                Recipes
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link 
-                                                href="/community" 
-                                                className="text-foreground hover:text-primary transition-colors font-medium py-2 block"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                Community
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link 
-                                                href="/about" 
-                                                className="text-foreground hover:text-primary transition-colors font-medium py-2 block"
-                                                onClick={() => setIsMenuOpen(false)}
-                                            >
-                                                About
-                                            </Link>
-                                        </li>
+                                        {navigationItems.map(({ href, label }) => (
+                                            <li key={href}>
+                                                <Link 
+                                                    href={href} 
+                                                    className="text-foreground hover:text-primary transition-colors font-medium py-3 block border-b border-border last:border-b-0"
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    {label}
+                                                </Link>
+                                            </li>
+                                        ))}
                                     </ul>
-                                    <section className="pt-4 border-t border-border flex flex-col space-y-3">
+                                    <section className="pt-6 border-t border-border flex flex-col space-y-4">
                                         <Link 
                                             href="/login" 
-                                            className="text-primary text-center hover:text-primary-hover transition-colors font-medium py-2"
+                                            className="text-primary text-center hover:text-primary-hover transition-colors font-medium py-2 px-4 border border-primary rounded-lg hover:bg-primary-lighter"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             Sign In
                                         </Link>
                                         <Link 
                                             href="/register" 
-                                            className="bg-primary hover:bg-primary-hover text-white text-center px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                                            className="bg-primary hover:bg-primary-hover text-white text-center px-4 py-2 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md"
                                             onClick={() => setIsMenuOpen(false)}
                                         >
                                             Get Started

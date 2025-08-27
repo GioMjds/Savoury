@@ -4,8 +4,8 @@ import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { user as userService } from '@/services/User';
-import type { UserProfileResponse } from '@/types/User';
 import { formatDate, formatTime } from '@/utils/formaters';
+import type { UserProfileResponse } from '@/types/User';
 
 const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -28,8 +28,6 @@ export default function ProfilePage({ userId }: { userId: number }) {
     });
 
     const totalRecipes = data?.user.recipes?.length;
-    const totalComments = data?.user.comments?.length;
-    const totalRatings = data?.user.ratings?.length;
 
     return (
         <motion.div 
@@ -69,25 +67,6 @@ export default function ProfilePage({ userId }: { userId: number }) {
                     </div>
                 </motion.div>
 
-                {/* Stats Cards */}
-                <motion.div 
-                    className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
-                    variants={fadeInUp}
-                >
-                    <div className="bg-white rounded-lg p-4 shadow-sm border border-border text-center">
-                        <div className="text-2xl font-bold text-primary">{totalRecipes}</div>
-                        <div className="text-sm text-muted">Recipes</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 shadow-sm border border-border text-center">
-                        <div className="text-2xl font-bold text-primary">{totalComments}</div>
-                        <div className="text-sm text-muted">Comments</div>
-                    </div>
-                    <div className="bg-white rounded-lg p-4 shadow-sm border border-border text-center">
-                        <div className="text-2xl font-bold text-primary">{totalRatings}</div>
-                        <div className="text-sm text-muted">Ratings Given</div>
-                    </div>
-                </motion.div>
-
                 {/* User's Recipes */}
                 <motion.div 
                     className="bg-white rounded-xl shadow-sm border border-border p-6"
@@ -104,7 +83,7 @@ export default function ProfilePage({ userId }: { userId: number }) {
                                 No recipes yet
                             </h3>
                             <p className="text-muted">
-                                {data?.user.fullname} hasn't shared any recipes yet.
+                                {data?.user.username} hasn't shared any recipes yet.
                             </p>
                         </div>
                     ) : (

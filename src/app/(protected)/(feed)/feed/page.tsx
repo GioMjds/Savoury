@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import FeedPage from "./feed";
 import { feed } from "@/services/Feed";
+import FeedPage from "./feed";
 
 export const metadata: Metadata = {
     title: "Your Feed",
