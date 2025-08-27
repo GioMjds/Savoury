@@ -21,7 +21,7 @@ import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { auth } from '@/services/Auth';
 import { RegisterPayload, OtpPayload } from '@/types/AuthResponse';
-import { validatePassword } from '@/utils/regex';
+import { passwordRequirements, validatePassword } from '@/utils/regex';
 
 enum RegistrationSteps {
 	FORMS = 'forms',
@@ -73,32 +73,6 @@ const stepTransition = {
 export default function RegisterPage() {
 	const [passwordShow, setPasswordShow] = useState<boolean>(false);
 	const [confirmPassShow, setConfirmPassShow] = useState<boolean>(false);
-	const passwordRequirements = [
-		{
-			key: 'minLength8',
-			label: 'At least 8 characters',
-		},
-		{
-			key: 'lowerUpperDigit',
-			label: 'Contains uppercase, lowercase, and a digit',
-		},
-		{
-			key: 'lowerUpperDigitSpecial',
-			label: 'Contains uppercase, lowercase, digit, and special character',
-		},
-		{
-			key: 'strictAlphanumeric',
-			label: '8-16 chars, letters and digits only',
-		},
-		{
-			key: 'strongNoWhitespace',
-			label: '12+ chars, upper, lower, digit, special, no spaces',
-		},
-		{
-			key: 'noTripleRepeat',
-			label: 'No triple repeated characters',
-		},
-	];
 	const [step, setStep] = useState<RegistrationSteps>(RegistrationSteps.FORMS);
 	const [userEmail, setUserEmail] = useState<string>('');
 	const [otp, setOtp] = useState<string[]>(['', '', '', '', '']);

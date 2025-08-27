@@ -19,6 +19,34 @@ const emailRegexes = {
 		/^(?!\d+$)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
 };
 
+export const passwordRequirements = [
+		{
+			key: 'minLength8',
+			label: 'At least 8 characters',
+		},
+		{
+			key: 'lowerUpperDigit',
+			label: 'Contains uppercase, lowercase, and a digit',
+		},
+		{
+			key: 'lowerUpperDigitSpecial',
+			label: 'Contains uppercase, lowercase, digit, and special character',
+		},
+		{
+			key: 'strictAlphanumeric',
+			label: '8-16 chars, letters and digits only',
+		},
+		{
+			key: 'strongNoWhitespace',
+			label: '12+ chars, upper, lower, digit, special, no spaces',
+		},
+		{
+			key: 'noTripleRepeat',
+			label: 'No triple repeated characters',
+		},
+	];
+
+
 export function validatePassword(
 	password: string,
 	type: keyof typeof passwordRegexes
