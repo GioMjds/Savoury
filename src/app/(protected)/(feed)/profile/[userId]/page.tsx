@@ -5,12 +5,12 @@ import ProfilePage from "./profile";
 import { Metadata } from "next";
 
 export async function generateMetadata(
-    { params }: { params: Promise<{ userId: string }> }
+    { params }: { params: Promise<{ userId: number }> }
 ): Promise<Metadata> {
     const { userId } = await params;
 
     try {
-        const data = await user.fetchUserProfile(Number(userId));
+        const data = await user.fetchUserProfile(userId);
 
         if (!data) {
             return {

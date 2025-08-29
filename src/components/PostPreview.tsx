@@ -67,24 +67,24 @@ const PostPreview = ({
 					</div>
                     <div className="flex flex-col">
                         <h1 className="text-base font-semibold text-foreground leading-tight">{fullName}</h1>
-                        <h3 className="text-xs text-muted-foreground leading-tight">@{username}</h3>
+                        <h3 className="text-xs text-muted leading-tight">@{username}</h3>
                     </div>
 				</div>
 			</div>
 
 			{/* Recipe Image */}
-			<div className="relative h-64 bg-muted">
+			<div className="relative h-64 bg-accent">
 				{imagePreview ? (
 					<Image
 						src={imagePreview}
-						alt={title || 'Recipe preview'}
+						alt={'Recipe preview'}
 						fill
 						className="object-cover"
 					/>
 				) : (
 					<div className="flex items-center justify-center h-full">
 						<div className="text-center">
-							<FontAwesomeIcon icon={faUtensils} className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+							<FontAwesomeIcon icon={faUtensils} size='4x' className="w-12 h-12 text-muted mx-auto mb-2" />
 							<p className="text-muted-foreground">Recipe image will appear here</p>
 						</div>
 					</div>

@@ -153,14 +153,54 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.5 }}
-					className="py-6 text-center flex-shrink-0"
+					className="py-4 flex-shrink-0"
 				>
-					<h1 className="text-3xl font-bold text-foreground">
-						Create New Recipe
-					</h1>
-					<p className="text-muted-foreground mt-2 text-lg">
-						Share your culinary masterpiece with the community
-					</p>
+					{/* Top Row - Back button and Logo */}
+					<div className="flex items-center justify-between">
+						<button
+							type="button"
+							onClick={() => router.back()}
+							className="flex items-center cursor-pointer gap-2 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-white/50"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								className="h-5 w-5"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M15 19l-7-7 7-7"
+								/>
+							</svg>
+							Back
+						</button>
+						
+						<div className="flex items-center gap-3">
+							<Image 
+								src="/savoury-logo.png"
+								alt='Savoury Logo'
+								width={50}
+								height={50}
+								priority
+								className='object-contain'
+							/>
+							<span className="text-2xl font-bold text-primary">Savoury</span>
+						</div>
+					</div>
+					
+					{/* Center Content - Title and Description */}
+					<div className="text-center">
+						<h1 className="text-4xl font-bold text-foreground mb-3">
+							Create New Recipe
+						</h1>
+						<p className="text-muted-foreground text-lg mx-auto">
+							Share your culinary masterpiece with the community and inspire others with your cooking
+						</p>
+					</div>
 				</motion.div>
 
 				{/* Two-Column Layout */}
@@ -179,7 +219,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 									<button
 										key={tab.id}
 										onClick={() => setActiveTab(tab.id)}
-										className={`px-4 py-3 font-medium text-sm relative ${
+										className={`px-4 py-3 cursor-pointer font-medium text-sm relative ${
 											activeTab === tab.id
 												? 'text-primary'
 												: 'text-muted-foreground hover:text-foreground'
@@ -262,7 +302,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 												{...register('description')}
 												className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
 												placeholder="Describe your recipe..."
-												rows={4}
+												rows={8}
 											/>
 										</div>
 
@@ -372,7 +412,6 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 														valueAsNumber: true,
 													})}
 													className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-													placeholder="15"
 												/>
 											</div>
 											<div>
@@ -386,7 +425,6 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 														valueAsNumber: true,
 													})}
 													className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-													placeholder="30"
 												/>
 											</div>
 											<div>
@@ -400,7 +438,6 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 														valueAsNumber: true,
 													})}
 													className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-													placeholder="4"
 												/>
 											</div>
 										</div>
@@ -657,21 +694,22 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 						transition={{ duration: 0.5, delay: 0.2 }}
 						className="flex flex-col overflow-hidden"
 					>
+						<h1 className="text-2xl font-bold text-foreground mb-2">Post Preview</h1>
 						<div className="overflow-y-auto">
 							<PostPreview
-							title={watchedValues.title}
-							fullName={fullName}
-							username={username}
-							profileImage={profileImage}
-							description={watchedValues.description}
-							imagePreview={imagePreview}
-							prepTime={watchedValues.prep_time_minutes}
-							cookTime={watchedValues.cook_time_minutes}
-							servings={watchedValues.servings}
-							category={watchedValues.category}
-							ingredients={watchedValues.ingredients}
-							instructions={watchedValues.instructions}
-						/>
+								title={watchedValues.title}
+								fullName={fullName}
+								username={username}
+								profileImage={profileImage}
+								description={watchedValues.description}
+								imagePreview={imagePreview}
+								prepTime={watchedValues.prep_time_minutes}
+								cookTime={watchedValues.cook_time_minutes}
+								servings={watchedValues.servings}
+								category={watchedValues.category}
+								ingredients={watchedValues.ingredients}
+								instructions={watchedValues.instructions}
+							/>
 						</div>
 					</motion.div>
 				</div>

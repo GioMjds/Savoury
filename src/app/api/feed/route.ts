@@ -9,7 +9,10 @@ export async function GET(req: NextRequest) {
 			include: {
 				user: {
 					select: {
+						user_id: true,
+						fullname: true,
 						username: true,
+						profile_image: true,
 					},
 				},
 				ratings: {
@@ -22,8 +25,6 @@ export async function GET(req: NextRequest) {
 					select: {
 						comment_id: true,
 						comment_text: true,
-						recipe: true,
-						user: true,
 					}
 				},
 				instructions: {
@@ -37,7 +38,6 @@ export async function GET(req: NextRequest) {
 						quantity: true,
 						unit: true,
 						ingredient: true,
-						recipe: true,
 					}
 				}
 			},
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 		}, { status: 200 });
 	} catch (error) {
 		return NextResponse.json({
-				error: `/feed GET error: ${error}`,
+			error: `/feed GET error: ${error}`,
 		}, { status: 500 });
 	}
 }

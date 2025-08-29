@@ -10,8 +10,6 @@ export async function GET(
         const user = await prisma.users.findUnique({
             where: { user_id: Number(userId) },
             include: {
-                comments: true,
-                ratings: true,
                 recipes: true,
             },
         });
@@ -28,9 +26,7 @@ export async function GET(
                 username: user.username,
                 fullname: user.fullname,
                 profile_image: user.profile_image,
-                created_at: user.created_at.toISOString(),
-                comments: user.comments,
-                ratings: user.ratings,
+                created_at: user.created_at,
                 recipes: user.recipes,
             },
         }, { status: 200 });
