@@ -105,6 +105,7 @@ export default function ProfilePage({ userId }: { userId: number }) {
                                                 src={recipe.image_url}
                                                 alt={recipe.title}
                                                 fill
+                                                priority
                                                 className="object-cover"
                                             />
                                         ) : (

@@ -15,3 +15,20 @@ export const formatTime = (minutes?: number) => {
     }
     return `${mins}m`;
 };
+
+export const formatCategory = (category: string) => {
+        const categoryMappings: Record<string, string> = {
+        'breakfast': '🌅 Breakfast',
+        'lunch': '🥪 Lunch', 
+        'dinner': '🍽️ Dinner',
+        'dessert': '🍰 Dessert',
+        'appetizer': '🥗 Appetizer',
+        'snack': '🍿 Snack',
+        'soup': '🍜 Soup',
+        'beverage': '☕ Beverage',
+        'salad': '🥙 Salad',
+        'side_dish': '🍚 Side Dish'
+    };
+
+    return categoryMappings[category.toLowerCase()] || category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+}

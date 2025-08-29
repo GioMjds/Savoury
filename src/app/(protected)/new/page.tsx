@@ -10,5 +10,12 @@ export const metadata: Metadata = {
 export default async function New() {
     const data = await getCurrentUser();
 
-    return <PostNewRecipe userId={data?.user_id as number} />;
+    return (
+        <PostNewRecipe 
+            userId={data?.user_id as number} 
+            username={data?.username as string}
+            profileImage={data?.profile_image as string}
+            fullName={data?.fullname as string}
+        />
+    );
 }

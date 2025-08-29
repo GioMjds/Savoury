@@ -54,7 +54,7 @@ const Modal: FC<ModalProps> = ({
 					onClick={handleBackdropClick}
 				>
 					<motion.div
-						className={`bg-background rounded-lg shadow-xl max-w-md w-full overflow-hidden ${
+						className={`bg-background rounded-lg shadow-xl mx-auto overflow-hidden ${
 							className || ''
 						}`}
 						initial={{ scale: 0.9, opacity: 0 }}
@@ -77,7 +77,7 @@ const Modal: FC<ModalProps> = ({
 									type="button"
 									onClick={handleCancel}
 									disabled={loading}
-									className="px-4 py-2 text-sm font-medium text-foreground bg-accent hover:bg-muted rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+									className="px-4 py-2 cursor-pointer text-sm font-medium text-foreground bg-accent hover:bg-muted rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
 								>
 									{cancelText}
 								</button>
@@ -85,7 +85,7 @@ const Modal: FC<ModalProps> = ({
 									type="button"
 									onClick={handleConfirm}
 									disabled={loading}
-									className="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center"
+									className="px-4 py-2 cursor-pointer text-sm font-medium text-white bg-primary hover:bg-primary-hover rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 flex items-center justify-center"
 								>
 									{loading ? (
 										<>

@@ -5,30 +5,15 @@ export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
 
     const authRoutes = ['/login', '/register', '/forgot', '/'];
-    const protectedRoutes = ['/feed', '/profile', '/search'];
+    const protectedRoutes = ['/feed', '/profile', '/search', '/new'];
     const publicRoutes = ['/about', '/community', '/contact', '/privacy', '/dev'];
 
     const accessToken = req.cookies.get('access_token')?.value;
-    const refreshToken = req.cookies.get('refresh_token')?.value;
 
     const hasValidAuth = async (): Promise<boolean> => {
         if (accessToken) {
             try {
                 await verifyToken(accessToken);
-                return true;
-            } catch (error) {
-                if (refreshToken) {
-                    try {
-                        await verifyToken(refreshToken);
-                        return true;
-                    } catch (refreshError) {
-                        return false;
-                    }
-                }
-            }
-        } else if (refreshToken) {
-            try {
-                await verifyToken(refreshToken);
                 return true;
             } catch (error) {
                 return false;
@@ -51,13 +36,11 @@ export async function middleware(req: NextRequest) {
         if (!isAuthenticated) {
             const response = NextResponse.redirect(new URL('/login', req.url));
             if (accessToken) response.cookies.delete('access_token');
-            if (refreshToken) response.cookies.delete('refresh_token');
             return response;
         }
 
-        if (!accessToken && refreshToken) {
+        if (!accessToken) {
             try {
-                await verifyToken(refreshToken);
                 return NextResponse.next();
             } catch (error) {
                 const response = NextResponse.redirect(new URL('/login', req.url));

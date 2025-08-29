@@ -85,20 +85,18 @@ export default function Home() {
 								variants={itemVariants}
 								className="flex flex-col sm:flex-row gap-4"
 							>
-								<motion.button
+								<Link
+									href="/register"
 									className="px-8 py-4 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium text-lg transition-all duration-200 shadow-lg hover:shadow-xl"
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.98 }}
 								>
-									Start Cooking
-								</motion.button>
-								<motion.button
+									Join Savoury for Free
+								</Link>
+								<Link
+									href="/login"
 									className="px-8 py-4 border-2 border-primary text-primary hover:bg-primary hover:text-white rounded-lg font-medium text-lg transition-all duration-200"
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.98 }}
 								>
-									Explore Recipes
-								</motion.button>
+									Sign In & Explore
+								</Link>
 							</motion.div>
 						</motion.div>
 
