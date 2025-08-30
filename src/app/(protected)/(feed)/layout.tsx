@@ -13,18 +13,20 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	let userDetails: object | null = null;
+	let userDetails;
 	const session = await getSession();
 
 	if (session) {
 		const user = await getCurrentUser();
-		userDetails = {
-			id: user?.user_id,
-			email: user?.email,
-			username: user?.username,
-			fullname: user?.fullname,
-			profile_image: user?.profile_image,
-		};
+		if (user) {
+			userDetails = {
+				id: String(user.user_id),
+				email: user.email || '',
+				username: user.username || '',
+				fullname: user.fullname || '',
+				profile_image: user.profile_image || '',
+			};
+		}
 	}
 
 	return (

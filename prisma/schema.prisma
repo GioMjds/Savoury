@@ -48,6 +48,7 @@ model Recipe {
     user              	Users           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
     recipeIngredients 	RecipeIngredient[]
     instructions      	Instruction[]
+    likes             	Int             @default(0)
     comments          	Comment[]
     ratings           	Rating[]
 }

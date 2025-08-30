@@ -62,8 +62,9 @@ export async function GET(
     }
 }
 
-// Editing a specific recipe post
-export async function PUT(
+// Action(s) needed:
+// 1. For creating a new comment
+export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ recipeId: string }> }
 ) {
@@ -72,5 +73,22 @@ export async function PUT(
         
     } catch (error) {
         
+    }
+}
+
+// Action(s) needed:
+// 1. Editing a specific recipe post
+// 2. For updating other users' like(s) interaction
+export async function PUT(
+    req: NextRequest,
+    { params }: { params: Promise<{ recipeId: string }> }
+) {
+    const { recipeId } = await params;
+    try {
+        
+    } catch (error) {
+        return NextResponse.json({
+            error: `/api/recipe/[recipeId] PUT error: ${error}`
+        }, { status: 500 });
     }
 }

@@ -9,11 +9,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { navigationItems } from '@/constants/homepage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faBellConcierge, faPlus, faPlusCircle, faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faPlusCircle, faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from '@/components/SearchBar';
 import Dropdown from '@/components/Dropdown';
 
-export interface NavbarProps {
+interface NavbarProps {
     userDetails?: {
         id?: string;
         email?: string;

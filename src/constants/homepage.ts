@@ -21,6 +21,5 @@ export const featuresContent = [
 export const navigationItems = [
 	{ href: '/about', label: 'About' },
 	{ href: '/privacy', label: 'Privacy Policy' },
-	{ href: '/community', label: 'Community' },
 	{ href: '/contact', label: 'Contact Us' },
 ];

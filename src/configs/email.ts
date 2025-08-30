@@ -144,7 +144,7 @@ export async function sendOtpEmail(email: string, otp: string) {
         <body>
             <div class="container">
                 <div class="header">
-                    <img src="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/savoury-logo.png" alt="Savoury Logo" class="logo">
+                    <img src="${process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/savoury-logo.png" alt="Savoury Logo" class="logo">
                 </div>
 
                 <div class="content">

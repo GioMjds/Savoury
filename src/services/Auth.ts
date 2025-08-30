@@ -16,7 +16,7 @@ class AuthService {
     }
 
     async resendOtp(payload: Pick<RegisterPayload, "firstName" | "lastName" | "email" | "username">) {
-        return httpClient.post('/auth?action=resend_register_otp', payload);
+        return httpClient.post('/auth?action=resend_otp', payload);
     }
 
     async verifyRegisterOtp(payload: OtpPayload) {

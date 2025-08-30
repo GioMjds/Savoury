@@ -1,9 +1,9 @@
 import { httpClient } from '@/configs/axios';
-import { RecipeData } from '@/types/FeedResponse';
+import { RecipeData, FeedResponse, FeedRecipe } from '@/types/FeedResponse';
 
 class FeedService {
-	async fetchFeed() {
-		return httpClient.get('/feed');
+	async fetchFeed(): Promise<FeedResponse> {
+		return await httpClient.get<FeedResponse>('/feed');
 	}
 
 	async postNewRecipe(recipeData: RecipeData) {
@@ -54,3 +54,4 @@ class FeedService {
 }
 
 export const feed = new FeedService();
+export type { FeedRecipe, FeedResponse };
