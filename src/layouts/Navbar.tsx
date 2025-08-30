@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell, faPlusCircle, faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from '@/components/SearchBar';
 import Dropdown from '@/components/Dropdown';
+import { authenticatedNavbarItems } from '@/constants/navbar';
 
 interface NavbarProps {
     userDetails?: {
@@ -46,10 +47,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
 
     const handleSearch = (query: string) => {
         router.push(`/search?q=${encodeURIComponent(query)}`);
-    };
-
-    const handleLogout = () => {
-        logoutMutation.mutate();
     };
 
     useEffect(() => {
@@ -88,44 +85,29 @@ export default function Navbar({ userDetails }: NavbarProps) {
 
                     {/* Navigation Section - Conditional based on authentication */}
                     {userDetails ? (
-                        <div className="hidden md:flex items-center flex-1 justify-center mx-8 space-x-6">
+                        <div className="hidden md:flex items-center flex-1 justify-center mx-6 space-x-10">
                             {/* Search Bar */}
                             <SearchBar 
                                 onSearch={handleSearch}
                             />
-                            {/* Post New Recipe Button */}
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.98 }}
-                            >   
-                                <Link
-                                    href="/new"
-                                    className="relative flex flex-col items-center p-2 rounded-lg text-foreground group-hover:text-primary-hover transition-colors group"
-                                    aria-label='Post a new recipe'
+                            {authenticatedNavbarItems.map(({ href, label, icon, ariaLabel }) => (
+                                <motion.div
+                                    key={href}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.98 }}
                                 >
-                                    <FontAwesomeIcon icon={faPlusCircle} size="xl" className="mb-1" />
-                                    <span className='block text-xs font-medium'>
-                                        Post
-                                    </span>
-                                </Link>
-                            </motion.div>
-
-                            {/* Notifications Button */}
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <Link
-                                    href="/notifications"
-                                    className="relative flex flex-col items-center p-2 rounded-lg text-foreground group-hover:text-primary-hover transition-colors group"
-                                    aria-label="View notifications"
-                                >
-                                    <FontAwesomeIcon icon={faBell} size="xl" className="mb-1" />
-                                    <span className="block text-xs font-medium">
-                                        Notifications
-                                    </span>
-                                </Link>
-                            </motion.div>
+                                    <Link
+                                        href={href}
+                                        className="relative flex flex-col items-center p-2 text-foreground group-hover:text-primary-hover transition-colors group"
+                                        aria-label={ariaLabel}
+                                    >
+                                        <FontAwesomeIcon icon={icon} size="xl" className="mb-1" />
+                                        <span className='block text-xs font-medium'>
+                                            {label}
+                                        </span>
+                                    </Link>
+                                </motion.div>
+                            ))}
                         </div>
                     ) : (
                         // Non-authenticated: Show navigation links
@@ -172,6 +154,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             src={userDetails.profile_image as string}
                                             alt={userDetails.fullname as string}
                                             fill
+                                            loading='lazy'
                                             sizes='48x48'
                                             className="object-cover"
                                         />
@@ -203,7 +186,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                         {
                                             label: logoutMutation.isPending ? 'Logging out...' : 'Log Out',
                                             icon: <FontAwesomeIcon icon={faSignOutAlt} />,
-                                            onClick: handleLogout,
+                                            onClick: logoutMutation.mutate,
                                             variant: 'danger' as const,
                                             disabled: logoutMutation.isPending,
                                         },
@@ -330,7 +313,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                         <button
                                             onClick={() => {
                                                 setIsMenuOpen(false);
-                                                handleLogout();
+                                                logoutMutation.mutate();
                                             }}
                                             disabled={logoutMutation.isPending}
                                             className="flex items-center space-x-3 w-full text-left text-error hover:text-error transition-colors font-medium py-2 disabled:opacity-50"

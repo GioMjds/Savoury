@@ -6,8 +6,8 @@ interface RecipeUser {
 }
 
 interface RecipeIngredient {
-    quantity: number | null;
-    unit: string | null;
+    quantity: number;
+    unit: string;
     ingredient: {
         ingredient_id: number;
         ingredient_name: string;
@@ -32,12 +32,12 @@ interface RecipeComment {
 export interface Recipe {
     recipe_id: number;
     title: string;
-    description: string | null;
-    image_url: string | null;
-    prep_time_minutes: number | null;
-    cook_time_minutes: number | null;
-    servings: number | null;
-    category: string | null;
+    description: string;
+    image_url: string;
+    prep_time_minutes: number;
+    cook_time_minutes: number;
+    servings: number;
+    category: string;
     average_rating: number;
     created_at: string;
     user: RecipeUser;

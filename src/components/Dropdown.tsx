@@ -15,7 +15,7 @@ interface DropdownItem {
 }
 
 interface CustomDropdownProps {
-	userDetails: {
+	userDetails?: {
 		id?: string;
 		fullname?: string;
 		email?: string;
@@ -93,7 +93,7 @@ const Dropdown: FC<CustomDropdownProps> = ({
                             <div className="flex items-center gap-3">
                                 <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                                     <Image
-                                        src={userDetails.profile_image as string}
+                                        src={userDetails?.profile_image as string}
                                         alt="Profile Image"
                                         fill
                                         className="object-cover"
@@ -101,10 +101,10 @@ const Dropdown: FC<CustomDropdownProps> = ({
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-foreground truncate">
-                                        {userDetails.fullname}
+                                        {userDetails?.fullname}
                                     </p>
                                     <p className="text-xs text-gray-500 truncate">
-                                        @{userDetails.username}
+                                        @{userDetails?.username}
                                     </p>
                                 </div>
                             </div>

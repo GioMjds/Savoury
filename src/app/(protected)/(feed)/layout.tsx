@@ -1,6 +1,9 @@
 import '../../globals.css';
 import type { Metadata } from 'next';
 import Navbar from '@/layouts/Navbar';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { SocketProvider } from '@/contexts/SocketContext';
 import { getCurrentUser, getSession } from '@/lib/auth';
 
 export const metadata: Metadata = {
@@ -31,8 +34,20 @@ export default async function RootLayout({
 
 	return (
 		<main>
-			<Navbar userDetails={userDetails} />
-			{children}
+			<SocketProvider>
+				<Navbar userDetails={userDetails} />
+				{children}
+				<ToastContainer
+					position="top-right"
+					autoClose={5000}
+					hideProgressBar={false}
+					newestOnTop={false}
+					closeOnClick
+					rtl={false}
+					pauseOnFocusLoss
+					pauseOnHover
+				/>
+			</SocketProvider>
 		</main>
 	);
 }

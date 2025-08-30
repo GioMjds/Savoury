@@ -2,6 +2,8 @@ import '../globals.css';
 import type { Metadata } from 'next';
 import { Kumbh_Sans } from 'next/font/google';
 import Providers from '@/providers/tanstack-query';
+import { SocketProvider } from '@/contexts/SocketContext';
+import { ToastContainer } from 'react-toastify';
 
 const kumbhSans = Kumbh_Sans({
 	variable: '--font-kumbh-sans',
@@ -23,7 +25,21 @@ export default function RootLayout({
 			<body
 				className={`${kumbhSans.variable} ${kumbhSans.style} antialiased`}
 			>
-				<Providers>{children}</Providers>
+				<Providers>
+					<SocketProvider>
+						{children}
+						<ToastContainer
+							position="top-right"
+							autoClose={5000}
+							hideProgressBar={false}
+							newestOnTop={false}
+							closeOnClick
+							rtl={false}
+							pauseOnFocusLoss
+							pauseOnHover
+						/>
+					</SocketProvider>
+				</Providers>
 			</body>
 		</html>
 	);
