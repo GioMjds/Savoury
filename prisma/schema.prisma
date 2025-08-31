@@ -27,10 +27,14 @@ model Users {
     fullname      		String    		@unique @db.VarChar(50)
     password      		String    		@db.VarChar(255)
     profile_image 		String    		@db.Text
+    cover_photo         String?         @db.Text
+    bio                 String?         @db.Text
+    social_links        Json?
     created_at    		DateTime  		@default(now())
     recipes       		Recipe[]
     comments      		Comment[]
     ratings       		Rating[]
+    bookmarks     		Bookmark[]
 }
 
 model Recipe {
@@ -51,6 +55,7 @@ model Recipe {
     likes             	Int             @default(0)
     comments          	Comment[]
     ratings           	Rating[]
+    bookmarks           Bookmark[]
 }
 
 model Ingredient {
@@ -106,5 +111,18 @@ model Rating {
     recipe     Recipe   @relation(fields: [recipe_id], references: [recipe_id], onDelete: Cascade)
 
     @@unique([user_id, recipe_id])
+    @@index([recipe_id])
+}
+
+model Bookmark {
+    bookmark_id         Int             @id @default(autoincrement())
+    user_id             Int
+    recipe_id           Int
+    created_at          DateTime        @default(now())
+    user                Users           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+    recipe              Recipe          @relation(fields: [recipe_id], references: [recipe_id], onDelete: Cascade)
+
+    @@unique([user_id, recipe_id])
+    @@index([user_id])
     @@index([recipe_id])
 }

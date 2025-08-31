@@ -110,9 +110,6 @@ const PostPreview = ({
                                     className="object-cover w-full h-full"
                                 />
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary rounded-full border-2 border-white flex items-center justify-center">
-                                <FontAwesomeIcon icon={faUtensils} className="w-2 h-2 text-white" />
-                            </div>
                         </div>
                         <div className="flex-1">
                             <h1 className="text-lg font-bold text-foreground leading-tight">{fullName}</h1>
@@ -335,35 +332,6 @@ const PostPreview = ({
                             </div>
                         </div>
                     </div>
-
-                    {/* Recipe Completion Status */}
-                    {(validIngredients.length > 0 || validInstructions.length > 0) && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.8 }}
-                            className="mt-8 bg-gradient-to-r from-primary/5 to-primary-light/5 rounded-2xl p-6 border border-primary/10"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h4 className="text-lg font-semibold text-foreground mb-1">
-                                        Your Recipe is Taking Shape! 🍳
-                                    </h4>
-                                    <p className="text-sm text-muted">
-                                        {completionScore < 50 && "Keep adding details to make your recipe shine"}
-                                        {completionScore >= 50 && completionScore < 80 && "Looking good! A few more details will perfect it"}
-                                        {completionScore >= 80 && "Excellent! Your recipe is almost ready to share"}
-                                    </p>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-2xl font-bold text-primary mb-1">
-                                        {completionScore}%
-                                    </div>
-                                    <div className="text-xs text-muted">Complete</div>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
                 </div>
             </motion.div>
         </div>
