@@ -88,8 +88,8 @@ export default function ProfilePage({ userId, currentUserId }: ProfileProps) {
                                 src={userProfile.cover_photo}
                                 alt={`${userProfile.fullname}'s cover`}
                                 fill
-                                className="object-cover"
                                 priority
+                                className="object-cover"
                             />
                         ) : (
                             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary-light/40 flex items-center justify-center">

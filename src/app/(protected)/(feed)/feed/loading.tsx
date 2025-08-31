@@ -83,8 +83,7 @@ export default function Loading() {
 							ease: 'easeInOut',
 						}}
 					>
-						Fetching the latest recipes from your favorite
-						creators...
+						Fetching the latest recipes from your favorite creators...
 					</motion.p>
 				</motion.div>
 

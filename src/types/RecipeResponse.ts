@@ -6,8 +6,8 @@ interface RecipeUser {
 }
 
 interface RecipeIngredient {
-    quantity: number;
-    unit: string;
+    quantity: number | null;
+    unit: string | null;
     ingredient: {
         ingredient_id: number;
         ingredient_name: string;
@@ -32,11 +32,11 @@ interface RecipeComment {
 export interface Recipe {
     recipe_id: number;
     title: string;
-    description: string;
-    image_url: string;
-    prep_time_minutes: number;
-    cook_time_minutes: number;
-    servings: number;
+    description: string | null;
+    image_url: string | null;
+    prep_time_minutes: number | null;
+    cook_time_minutes: number | null;
+    servings: number | null;
     category: string;
     average_rating: number;
     created_at: string;
@@ -45,6 +45,7 @@ export interface Recipe {
     instructions: RecipeInstruction[];
     ratings: RecipeRating[];
     comments: RecipeComment[];
+    isBookmarked?: boolean;
 }
 
 export interface PostBlockProps {

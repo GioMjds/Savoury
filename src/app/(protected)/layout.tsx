@@ -29,7 +29,7 @@ export default function RootLayout({
 					<SocketProvider>
 						{children}
 						<ToastContainer
-							position="top-right"
+							position="bottom-right"
 							autoClose={5000}
 							hideProgressBar={false}
 							newestOnTop={false}

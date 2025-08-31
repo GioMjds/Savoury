@@ -38,7 +38,7 @@ export default async function RootLayout({
 				<Navbar userDetails={userDetails} />
 				{children}
 				<ToastContainer
-					position="top-right"
+					position="bottom-right"
 					autoClose={5000}
 					hideProgressBar={false}
 					newestOnTop={false}

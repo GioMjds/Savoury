@@ -2,9 +2,13 @@ import { type NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import cloudinary from '@/lib/cloudinary';
 import { FoodCategories } from '@/types/FeedResponse';
+import { getSession } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
 	try {
+		const session = await getSession();
+		const userId = session?.userId;
+
 		const recipeFeed = await prisma.recipe.findMany({
 			include: {
 				user: {
@@ -39,13 +43,39 @@ export async function GET(req: NextRequest) {
 						unit: true,
 						ingredient: true,
 					}
+				},
+				bookmarks: userId ? {
+					where: {
+						user_id: userId
+					},
+					select: {
+						user_id: true
+					}
+				} : {
+					where: {
+						user_id: -1 // This will return empty array for unauthenticated users
+					},
+					select: {
+						user_id: true
+					}
 				}
 			},
+			orderBy: {
+				created_at: 'desc'
+			}
 		});
+
+		// Add bookmark information to each recipe
+		const recipesWithBookmarkInfo = recipeFeed.map(recipe => ({
+			...recipe,
+			isBookmarked: userId && recipe.bookmarks ? recipe.bookmarks.length > 0 : false,
+			// Remove the bookmarks array to reduce response size
+			bookmarks: undefined
+		}));
 
 		return NextResponse.json({
 			message: 'Feed data fetched successfully',
-			feed: recipeFeed
+			feed: recipesWithBookmarkInfo
 		}, { status: 200 });
 	} catch (error) {
 		return NextResponse.json({

@@ -1,8 +1,8 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { memo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faClock,
@@ -12,80 +12,65 @@ import {
 	faComment,
 	faShare,
 	faStar,
-	faBookmark
+	faBookmark as faBookmarkSolid
 } from '@fortawesome/free-solid-svg-icons';
+import {
+	faBookmark as faBookmarkRegular
+} from '@fortawesome/free-regular-svg-icons';
 import { formatCategory, formatTime } from '@/utils/formaters';
 import { PostBlockProps } from '@/types/RecipeResponse';
+import { useBookmark } from '@/hooks/useBookmark';
 
 const PostBlock = ({ recipe }: PostBlockProps) => {
-	const totalTime =
-		(recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0);
+	const totalTime = (recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0);
 	const averageRating = Number(recipe.average_rating);
 	const ratingsCount = recipe.ratings.length;
 	const commentsCount = recipe.comments.length;
 
+	const { isBookmarked, isLoading: bookmarkLoading, toggleBookmark } = useBookmark(recipe.isBookmarked);
+
+	const handleBookmarkClick = async (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		await toggleBookmark(recipe.recipe_id);
+	};
+
 	return (
-		<motion.article
-			initial={{ opacity: 0, y: 30 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.6, ease: 'easeOut' }}
-			whileHover={{ y: -8 }}
-			className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-border overflow-hidden transition-all duration-500 backdrop-blur-sm"
-		>
+		<article className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-border overflow-hidden transition-all duration-300 hover:-translate-y-2">
 			{/* Recipe Image with Overlay Info */}
 			<Link
 				href={`/recipe/${recipe.recipe_id}`}
 				className="block relative"
 			>
 				<div className="relative h-80 bg-gradient-to-br from-accent to-muted overflow-hidden">
-					{recipe.image_url ? (
-						<>
-							<Image
-								src={recipe.image_url}
-								alt={recipe.title}
-								fill
-								className="object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-							/>
-							{/* Elegant gradient overlay */}
-							<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-						</>
-					) : (
-						<div className="flex items-center justify-center h-full bg-gradient-to-br from-primary-lighter to-muted">
-							<div className="text-center">
-								<FontAwesomeIcon
-									icon={faUtensils}
-									className="w-20 h-20 text-primary/60 mx-auto mb-4"
-								/>
-								<p className="text-primary/80 font-medium">
-									Delicious Recipe
-								</p>
-							</div>
-						</div>
-					)}
-
+					<Image
+						src={recipe.image_url as string}
+						alt={recipe.title}
+						fill
+						className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+						loading="lazy"
+					/>
+					{/* Elegant gradient overlay */}
+					<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 					{/* Top Row: Category & Bookmark */}
 					<div className="absolute top-4 left-4 right-4 flex justify-between items-start">
 						{recipe.category && (
-							<motion.span
-								initial={{ scale: 0.8, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								transition={{ delay: 0.2 }}
-								className="bg-white/90 backdrop-blur-sm text-primary px-4 py-2 rounded-full text-sm font-semibold shadow-lg border border-white/20"
-							>
+							<span className="bg-white/90 backdrop-blur-sm text-primary px-4 py-2 rounded-full text-sm font-semibold shadow-lg border border-white/20 transform translate-y-0 opacity-100 transition-all duration-300">
 								{formatCategory(recipe.category)}
-							</motion.span>
+							</span>
 						)}
 
-						<motion.button
-							whileHover={{ scale: 1.1 }}
-							whileTap={{ scale: 0.9 }}
-							className="bg-white/20 backdrop-blur-sm p-2 rounded-full text-white hover:bg-white/30 transition-colors shadow-lg"
+						<button 
+							onClick={handleBookmarkClick}
+							disabled={bookmarkLoading}
+							className={`bg-white/20 backdrop-blur-sm p-2 rounded-full transition-all duration-200 shadow-lg hover:bg-white/30 hover:scale-110 disabled:opacity-70 disabled:cursor-not-allowed ${isBookmarked ? 'text-yellow-400 bg-yellow-400/20' : 'text-white'}`}
+							title={isBookmarked ? "Remove from bookmarks" : "Add to bookmarks"}
 						>
 							<FontAwesomeIcon
-								icon={faBookmark}
-								className="w-4 h-4"
+								icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular}
+								className={`w-4 h-4 transition-colors duration-200 ${bookmarkLoading ? 'animate-pulse' : ''}`}
 							/>
-						</motion.button>
+						</button>
 					</div>
 
 					{/* Bottom Row: Quick Stats */}
@@ -140,11 +125,10 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 						className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary/20 hover:ring-primary/40 transition-all"
 					>
 						<Image
-							src={
-								recipe.user.profile_image || '/Default_pfp.jpg'
-							}
+							src={recipe.user.profile_image}
 							alt={`${recipe.user.fullname}'s profile`}
 							fill
+							priority
 							className="object-cover"
 						/>
 					</Link>
@@ -159,9 +143,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 							<span>@{recipe.user.username}</span>
 							<span>•</span>
 							<span>
-								{new Date(
-									recipe.created_at
-								).toLocaleDateString()}
+								{new Date(recipe.created_at).toLocaleDateString()}
 							</span>
 						</div>
 					</div>
@@ -246,18 +228,12 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 							{recipe.recipeIngredients
 								.slice(0, 4)
 								.map((recipeIngredient, index) => (
-									<motion.div
+									<div
 										key={index}
-										initial={{ opacity: 0, scale: 0.8 }}
-										animate={{ opacity: 1, scale: 1 }}
-										transition={{ delay: index * 0.1 }}
-										className="bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium text-primary"
+										className="bg-primary/5 border border-primary/20 px-3 py-1.5 rounded-full text-xs font-medium text-primary opacity-100 scale-100 transition-all duration-200 hover:scale-105"
 									>
-										{
-											recipeIngredient.ingredient
-												.ingredient_name
-										}
-									</motion.div>
+										{recipeIngredient.ingredient.ingredient_name}
+									</div>
 								))}
 							{recipe.recipeIngredients.length > 4 && (
 								<div className="bg-muted border border-border px-3 py-1.5 rounded-full text-xs font-medium text-foreground">
@@ -271,11 +247,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 				{/* Action Bar */}
 				<div className="flex items-center justify-between pt-4 border-t border-border">
 					<div className="flex items-center gap-6">
-						<motion.button
-							whileHover={{ scale: 1.1 }}
-							whileTap={{ scale: 0.9 }}
-							className="flex items-center gap-2 text-muted hover:text-red-500 transition-all duration-200"
-						>
+						<button className="flex items-center gap-2 text-muted hover:text-red-500 transition-all duration-200 hover:scale-105">
 							<div className="w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors">
 								<FontAwesomeIcon
 									icon={faHeart}
@@ -283,7 +255,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 								/>
 							</div>
 							<span className="text-sm font-medium">Like</span>
-						</motion.button>
+						</button>
 
 						<Link
 							href={`/recipe/${recipe.recipe_id}#comments`}
@@ -300,11 +272,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 							</span>
 						</Link>
 
-						<motion.button
-							whileHover={{ scale: 1.1 }}
-							whileTap={{ scale: 0.9 }}
-							className="flex items-center gap-2 text-muted hover:text-primary transition-all duration-200"
-						>
+						<button className="flex items-center gap-2 text-muted hover:text-primary transition-all duration-200 hover:scale-105">
 							<div className="w-8 h-8 rounded-full bg-primary/5 hover:bg-primary/10 flex items-center justify-center transition-colors">
 								<FontAwesomeIcon
 									icon={faShare}
@@ -312,24 +280,21 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 								/>
 							</div>
 							<span className="text-sm font-medium">Share</span>
-						</motion.button>
+						</button>
 					</div>
 
-					<motion.div
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
-					>
+					<div className="hover:scale-105 transition-transform duration-200">
 						<Link
 							href={`/recipe/${recipe.recipe_id}`}
 							className="bg-gradient-to-r from-primary to-primary-hover text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
 						>
 							Cook This Recipe
 						</Link>
-					</motion.div>
+					</div>
 				</div>
 			</div>
-		</motion.article>
+		</article>
 	);
 };
 
-export default PostBlock;
+export default memo(PostBlock);

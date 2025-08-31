@@ -42,7 +42,6 @@ export type NewRecipeForm = {
     category: string;
 };
 
-// Feed Response Types
 export interface FeedRecipeUser {
     user_id: number;
     fullname: string;
@@ -82,7 +81,7 @@ export interface FeedRecipe {
     prep_time_minutes: number | null;
     cook_time_minutes: number | null;
     servings: number | null;
-    category: string | null;
+    category: string;
     average_rating: number;
     created_at: string;
     user: FeedRecipeUser;
@@ -90,6 +89,7 @@ export interface FeedRecipe {
     instructions: FeedRecipeInstruction[];
     ratings: FeedRecipeRating[];
     comments: FeedRecipeComment[];
+    isBookmarked?: boolean;
 }
 
 export interface FeedResponse {

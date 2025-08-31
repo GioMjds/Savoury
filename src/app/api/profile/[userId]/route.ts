@@ -85,12 +85,6 @@ export async function GET(
                     likes: recipe.ratings.filter(r => r.rating >= 4).length,
                 })),
                 bookmarks: user.bookmarks,
-                stats: {
-                    totalRecipes: user._count.recipes,
-                    totalBookmarks: user._count.bookmarks,
-                    totalRatings: user._count.ratings,
-                    totalComments: user._count.comments
-                }
             },
         }, { status: 200 });
     } catch (error) {
