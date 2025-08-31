@@ -1,8 +1,7 @@
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import { notFound } from "next/navigation";
 import { user } from "@/services/User";
 import ProfilePage from "./profile";
 import { Metadata } from "next";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function generateMetadata(
     { params }: { params: Promise<{ userId: number }> }
@@ -31,21 +30,12 @@ export async function generateMetadata(
 
 export default async function Profile({ params }: { params: Promise<{ userId: number }> }) {
     const { userId } = await params;
-    const queryClient = new QueryClient();
-
-    try {
-        const data = await queryClient.fetchQuery({
-            queryKey: ['profile', userId],
-            queryFn: () => user.fetchUserProfile(userId)
-        }); 
-        if (!data) return notFound();
-    } catch {
-        notFound();
-    }
+    const currentUser = await getCurrentUser();
 
     return (
-        <HydrationBoundary state={dehydrate(queryClient)}>
-            <ProfilePage userId={userId} />
-        </HydrationBoundary>
+        <ProfilePage 
+            userId={userId} 
+            currentUserId={currentUser?.user_id || null} 
+        />
     )
 }

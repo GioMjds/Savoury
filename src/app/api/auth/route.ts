@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
 
                 return response;
             }
-            case "send_register_otp": { // -> Sending OTP for register.tsx
+            case "send_register_otp": {
                 const { firstName, lastName, email, username, password, confirmPassword } = await req.json();
 
                 if (!firstName || !lastName || !email || !username || !password || !confirmPassword) {
@@ -252,7 +252,10 @@ export async function POST(req: NextRequest) {
                         email: email,
                         username: username,
                         password: hashedPassword,
-                        profile_image: profileImgUrl
+                        profile_image: profileImgUrl,
+                        social_links: {},
+                        bio: "",
+                        
                     }
                 });
 

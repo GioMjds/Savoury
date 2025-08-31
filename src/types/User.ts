@@ -42,7 +42,66 @@ export interface UserProfile extends User {
     ratings: Rating[];
 }
 
+interface SocialLinks {
+    instagram?: string;
+    twitter?: string;
+    facebook?: string;
+    youtube?: string;
+    github?: string;
+    linkedin?: string;
+    website?: string;
+}
+
+interface UserStats {
+    totalRecipes: number;
+    totalBookmarks: number;
+    totalRatings: number;
+    totalComments: number;
+}
+
 export interface UserProfileResponse {
-    message: string;
-    user: UserProfile;
+    user: {
+        user_id: number;
+        email: string;
+        username: string;
+        fullname: string;
+        profile_image: string;
+        cover_photo?: string;
+        bio?: string;
+        social_links?: SocialLinks;
+        created_at: string;
+        recipes: Array<{
+            recipe_id: number;
+            title: string;
+            description?: string;
+            image_url?: string;
+            prep_time_minutes?: number;
+            cook_time_minutes?: number;
+            servings?: number;
+            category?: string;
+            average_rating: number;
+            likes: number;
+            created_at: string;
+            _count?: {
+                ratings: number;
+                comments: number;
+                bookmarks: number;
+            };
+        }>;
+        bookmarks: Array<{
+            bookmark_id: number;
+            created_at: string;
+            recipe: {
+                recipe_id: number;
+                title: string;
+                image_url?: string;
+                user: {
+                    username: string;
+                    fullname: string;
+                    profile_image: string;
+                };
+            };
+        }>;
+        stats: UserStats;
+    };
 }
