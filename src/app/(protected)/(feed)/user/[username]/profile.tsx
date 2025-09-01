@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-    faCalendarAlt,
     faClock,
     faUsers,
     faStar,
@@ -15,16 +14,17 @@ import {
     faBookmark,
     faUtensils,
     faEdit,
+    IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
 import { user as userService } from '@/services/User';
-import { formatDate, formatTime } from '@/utils/formaters';
+import { formatDate, formatGender, formatTime } from '@/utils/formaters';
 import { getSocialLinkInfo } from '@/utils/socialLinks';
 import { UserProfileResponse } from '@/types/User';
 import EditProfileModal from '@/components/EditProfileModal';
 import Link from 'next/link';
 
 interface ProfileProps {
-    userId: number;
+    username: string;
     currentUserId: number | null;
 }
 
@@ -54,19 +54,19 @@ const scaleIn = {
     transition: { duration: 0.4, ease: "easeOut" }
 };
 
-export default function ProfilePage({ userId, currentUserId }: ProfileProps) {
+export default function ProfilePage({ username, currentUserId }: ProfileProps) {
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
     
     const { data } = useQuery<UserProfileResponse>({
-        queryKey: ['profile', userId],
-        queryFn: () => userService.fetchUserProfile(userId),
+        queryKey: ['profile', username],
+        queryFn: () => userService.fetchUserProfile(username),
     });
 
     if (!data) return null;
 
     const { user: userProfile } = data;
 
-    const isOwnProfile = currentUserId !== userId;
+    const isOwnProfile = String(currentUserId) === String(userProfile.user_id);
 
     return (
         <motion.div 
@@ -128,15 +128,28 @@ export default function ProfilePage({ userId, currentUserId }: ProfileProps) {
                                     className="flex-1 min-w-0 pr-4"
                                 >
                                     <div className="text-center sm:text-left">
-                                        <motion.h1 
-                                            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground truncate mb-2"
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ duration: 0.6, delay: 0.2 }}
-                                        >
-                                            {userProfile.fullname}
-                                        </motion.h1>
-                                        
+                                        <div className="flex items-center justify-center sm:justify-start gap-3 mb-2">
+                                            <motion.h1 
+                                                className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground truncate"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ duration: 0.6, delay: 0.2 }}
+                                            >
+                                                {userProfile.fullname}
+                                            </motion.h1>
+
+                                            {userProfile.gender && (
+                                                <motion.span
+                                                    initial={{ opacity: 0, scale: 0 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    transition={{ duration: 0.4, delay: 0.3 }}
+                                                    className="text-primary"
+                                                >
+                                                    <FontAwesomeIcon icon={formatGender(userProfile.gender).icon as IconDefinition} color={formatGender(userProfile.gender).color} size="xl" />
+                                                </motion.span>
+                                            )}
+                                        </div>
+
                                         <motion.div
                                             className="flex items-center justify-center sm:justify-start gap-2 mb-4"
                                             initial={{ opacity: 0, x: -20 }}
@@ -154,7 +167,7 @@ export default function ProfilePage({ userId, currentUserId }: ProfileProps) {
                                 {isOwnProfile && (
                                     <motion.button
                                         onClick={() => setIsEditModalOpen(true)}
-                                        className="group relative flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary-hover text-white rounded-xl font-medium text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0"
+                                        className="group cursor-pointer relative flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary-hover text-white rounded-xl font-medium text-sm sm:text-base shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden flex-shrink-0"
                                         whileHover={{  scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
                                         variants={slideInLeft}
@@ -206,7 +219,6 @@ export default function ProfilePage({ userId, currentUserId }: ProfileProps) {
                                         </h3>
                                         <div className="flex items-center gap-3 flex-wrap">
                                             {Object.entries(userProfile.social_links).map(([label, url]) => {
-                                                if (!url) return null;
                                                 const socialInfo = getSocialLinkInfo(url);
                                                 
                                                 return (
@@ -265,19 +277,15 @@ export default function ProfilePage({ userId, currentUserId }: ProfileProps) {
                                         <motion.div
                                             key={bookmark.bookmark_id}
                                             className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                                            whileHover={{ x: 4 }}
                                         >
                                             <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                                                {bookmark.recipe.image_url ? (
-                                                    <Image
-                                                        src={bookmark.recipe.image_url}
-                                                        alt={bookmark.recipe.title}
-                                                        fill
-                                                        className="object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="flex items-center justify-center h-full text-xl">🍽️</div>
-                                                )}
+                                                <Image
+                                                    src={bookmark.recipe.image_url as string}
+                                                    alt={bookmark.recipe.title}
+                                                    fill
+                                                    loading="lazy"
+                                                    className="object-cover"
+                                                />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <p className="font-medium text-foreground text-sm line-clamp-1">
@@ -315,10 +323,13 @@ export default function ProfilePage({ userId, currentUserId }: ProfileProps) {
                                     <h3 className="text-xl font-semibold text-foreground mb-2">
                                         No recipes yet
                                     </h3>
-                                    <p className="text-muted max-w-md mx-auto">
+                                    <p className="text-muted mx-auto">
                                         {userProfile.username} hasn't shared any recipes yet. 
                                         Check back later for delicious creations!
                                     </p>
+                                    <Link href={`/new`} className='inline-block mt-4 px-4 py-2 bg-primary text-white rounded-md'>
+                                        Create Recipe
+                                    </Link>
                                 </div>
                             ) : (
                                 <motion.div 

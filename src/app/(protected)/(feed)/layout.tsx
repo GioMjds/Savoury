@@ -34,7 +34,7 @@ export default async function RootLayout({
 
 	return (
 		<main>
-			<SocketProvider>
+			{/* <SocketProvider> */}
 				<Navbar userDetails={userDetails} />
 				{children}
 				<ToastContainer
@@ -47,7 +47,7 @@ export default async function RootLayout({
 					pauseOnFocusLoss
 					pauseOnHover
 				/>
-			</SocketProvider>
+			{/* </SocketProvider> */}
 		</main>
 	);
 }

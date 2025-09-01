@@ -68,6 +68,8 @@ export interface UserProfileResponse {
         profile_image: string;
         cover_photo?: string;
         bio?: string;
+        gender?: string;
+        pronouns?: string;
         social_links?: SocialLinks;
         created_at: string;
         recipes: Array<{

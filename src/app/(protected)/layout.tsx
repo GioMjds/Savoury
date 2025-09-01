@@ -26,7 +26,7 @@ export default function RootLayout({
 				className={`${kumbhSans.variable} ${kumbhSans.style} antialiased`}
 			>
 				<Providers>
-					<SocketProvider>
+					{/* <SocketProvider> */}
 						{children}
 						<ToastContainer
 							position="bottom-right"
@@ -38,7 +38,7 @@ export default function RootLayout({
 							pauseOnFocusLoss
 							pauseOnHover
 						/>
-					</SocketProvider>
+					{/* </SocketProvider> */}
 				</Providers>
 			</body>
 		</html>

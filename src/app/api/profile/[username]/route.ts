@@ -4,12 +4,12 @@ import cloudinary from "@/lib/cloudinary";
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ userId: string }> }
+    { params }: { params: Promise<{ username: string }> }
 ) {
-    const { userId } = await params;
+    const { username } = await params;
     try {
         const user = await prisma.users.findUnique({
-            where: { user_id: Number(userId) },
+            where: { username },
             include: {
                 recipes: {
                     include: {
@@ -75,6 +75,8 @@ export async function GET(
                 profile_image: user.profile_image,
                 cover_photo: user.cover_photo,
                 bio: user.bio,
+                gender: user.gender,
+                pronouns: user.pronouns,
                 social_links: socialLinks,
                 created_at: user.created_at,
                 recipes: user.recipes.map(recipe => ({
@@ -96,25 +98,24 @@ export async function GET(
 
 export async function PUT(
     req: NextRequest,
-    { params }: { params: Promise<{ userId: string }> }
+    { params }: { params: Promise<{ username: string }> }
 ) {
-    const { userId } = await params;
-    
+    const { username } = await params;
+
     try {
         const formData = await req.formData();
         
-        // Extract text fields
         const email = formData.get('email') as string;
-        const username = formData.get('username') as string;
+        const userName = formData.get('username') as string;
         const fullname = formData.get('fullname') as string;
         const bio = formData.get('bio') as string || '';
+        const gender = formData.get('gender') as string || '';
+        const pronouns = formData.get('pronouns') as string || '';
         const socialLinksString = formData.get('social_links') as string;
         
-        // Extract file fields
         const profileImageFile = formData.get('profile_image') as File | null;
         const coverPhotoFile = formData.get('cover_photo') as File | null;
         
-        // Parse social links
         let parsedSocialLinks = null;
         if (socialLinksString) {
             try {
@@ -126,9 +127,8 @@ export async function PUT(
             }
         }
 
-        // Get current user data
         const currentUser = await prisma.users.findUnique({
-            where: { user_id: Number(userId) },
+            where: { username: username },
             select: {
                 profile_image: true,
                 cover_photo: true
@@ -144,14 +144,11 @@ export async function PUT(
         let profileImageUrl = currentUser.profile_image;
         let coverPhotoUrl = currentUser.cover_photo;
 
-        // Upload profile image to Cloudinary if provided
         if (profileImageFile && profileImageFile.size > 0) {
             try {
-                // Convert File to Buffer
                 const bytes = await profileImageFile.arrayBuffer();
                 const buffer = Buffer.from(bytes);
 
-                // Upload to Cloudinary
                 const uploadResult = await cloudinary.uploader.upload(
                     `data:${profileImageFile.type};base64,${buffer.toString('base64')}`,
                     {
@@ -173,14 +170,11 @@ export async function PUT(
             }
         }
 
-        // Upload cover photo to Cloudinary if provided
         if (coverPhotoFile && coverPhotoFile.size > 0) {
             try {
-                // Convert File to Buffer
                 const bytes = await coverPhotoFile.arrayBuffer();
                 const buffer = Buffer.from(bytes);
 
-                // Upload to Cloudinary
                 const uploadResult = await cloudinary.uploader.upload(
                     `data:${coverPhotoFile.type};base64,${buffer.toString('base64')}`,
                     {
@@ -202,16 +196,17 @@ export async function PUT(
             }
         }
 
-        // Update user in database
         const user = await prisma.users.update({
-            where: { user_id: Number(userId) },
+            where: { username: username },
             data: {
                 email,
-                username,
+                username: userName,
                 fullname,
                 profile_image: profileImageUrl,
                 cover_photo: coverPhotoUrl,
                 bio,
+                gender: gender || null,
+                pronouns: pronouns || null,
                 social_links: parsedSocialLinks,
             },
         });
@@ -226,6 +221,8 @@ export async function PUT(
                 profile_image: user.profile_image,
                 cover_photo: user.cover_photo,
                 bio: user.bio,
+                gender: user.gender,
+                pronouns: user.pronouns,
                 social_links: user.social_links,
                 created_at: user.created_at,
             },

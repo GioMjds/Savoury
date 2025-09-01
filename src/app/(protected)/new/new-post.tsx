@@ -147,7 +147,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 
 	return (
 		<div className="h-screen bg-muted flex flex-col overflow-hidden">
-			<div className="max-w-7xl mx-auto w-full flex flex-col h-full px-4">
+			<div className="container mx-auto flex flex-col h-full px-8">
 				{/* Header */}
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
@@ -194,7 +194,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 					
 					{/* Center Content - Title and Description */}
 					<div className="text-center">
-						<h1 className="text-4xl font-bold text-foreground mb-3">
+						<h1 className="text-3xl font-bold text-foreground mb-3">
 							Create New Recipe
 						</h1>
 						<p className="text-muted-foreground text-lg mx-auto">
@@ -694,7 +694,6 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 						transition={{ duration: 0.5, delay: 0.2 }}
 						className="flex flex-col overflow-hidden"
 					>
-						<h1 className="text-2xl font-bold text-foreground mb-2">Post Preview</h1>
 						<div className="overflow-y-auto">
 							<PostPreview
 								title={watchedValues.title}

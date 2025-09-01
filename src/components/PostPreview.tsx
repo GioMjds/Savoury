@@ -51,45 +51,9 @@ const PostPreview = ({
 	const totalTime = (prepTime || 0) + (cookTime || 0);
 	const validIngredients = ingredients.filter(ing => ing.ingredient_name?.trim());
 	const validInstructions = instructions.filter(inst => inst.value?.trim());
-    const completionScore = Math.round(
-        ((title ? 15 : 0) + 
-         (description ? 10 : 0) + 
-         (imagePreview ? 20 : 0) + 
-         (prepTime ? 5 : 0) + 
-         (cookTime ? 5 : 0) + 
-         (servings ? 5 : 0) + 
-         (category ? 10 : 0) + 
-         (validIngredients.length * 2) + 
-         (validInstructions.length * 2)) / 1.5
-    );
 
 	return (
         <div className="space-y-6">
-            {/* Completion Progress */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-primary/10 to-primary-light/10 border border-primary/20 rounded-xl p-4"
-            >
-                <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <FontAwesomeIcon icon={faEye} className="w-4 h-4 text-primary" />
-                        Recipe Preview
-                    </h3>
-                    <div className="text-sm font-medium text-primary">
-                        {completionScore}% Complete
-                    </div>
-                </div>
-                <div className="w-full bg-primary/20 rounded-full h-2">
-                    <motion.div 
-                        className="bg-gradient-to-r from-primary to-primary-hover h-2 rounded-full"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(completionScore, 100)}%` }}
-                        transition={{ duration: 1, delay: 0.5 }}
-                    />
-                </div>
-            </motion.div>
-
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -113,7 +77,7 @@ const PostPreview = ({
                         </div>
                         <div className="flex-1">
                             <h1 className="text-lg font-bold text-foreground leading-tight">{fullName}</h1>
-                            <p className="text-sm text-muted">@{username} • Creating a new recipe</p>
+                            <p className="text-sm text-muted">@{username}</p>
                         </div>
                         <div className="text-xs text-muted bg-white/50 px-3 py-1 rounded-full">
                             Preview Mode
@@ -129,6 +93,7 @@ const PostPreview = ({
                                 src={imagePreview}
                                 alt={'Recipe preview'}
                                 fill
+                                priority
                                 className="object-cover"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
@@ -233,7 +198,7 @@ const PostPreview = ({
                     </div>
 
                     {/* Enhanced Content Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="grid grid-rows-1 lg:grid-rows-2 gap-8">
                         {/* Enhanced Ingredients */}
                         <div className="bg-gradient-to-br from-success-light/30 to-success-light/10 rounded-2xl p-6 border border-success-light/30">
                             <h4 className="text-lg font-bold text-foreground mb-4 flex items-center gap-3">
@@ -295,7 +260,7 @@ const PostPreview = ({
                                 {validInstructions.length > 0 ? (
                                     <>
                                         {validInstructions.slice(0, 4).map((instruction, index) => (
-                                            <motion.div 
+                                            <motion.div
                                                 key={index}
                                                 initial={{ opacity: 0, x: -20 }}
                                                 animate={{ opacity: 1, x: 0 }}

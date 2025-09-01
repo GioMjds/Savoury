@@ -85,7 +85,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
 
                     {/* Navigation Section - Conditional based on authentication */}
                     {userDetails ? (
-                        <div className="hidden md:flex items-center flex-1 justify-center mx-6 space-x-10">
+                        <div className="hidden md:flex items-center justify-center mx-10">
                             {/* Search Bar */}
                             <SearchBar 
                                 onSearch={handleSearch}
@@ -98,7 +98,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                 >
                                     <Link
                                         href={href}
-                                        className="relative flex flex-col items-center p-2 text-foreground group-hover:text-primary-hover transition-colors group"
+                                        className="relative flex justify-center items-center p-2 text-foreground group-hover:text-primary-hover transition-colors group"
                                         aria-label={ariaLabel}
                                     >
                                         <FontAwesomeIcon icon={icon} size="xl" className="mb-1" />
@@ -141,7 +141,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
                     {/* Auth Section - Profile or Login/Register */}
                     <section className="hidden md:flex items-center space-x-4">
                         {userDetails ? (
-                            // User Profile Dropdown
                             <div className="relative" ref={profileRef}>
                                 <motion.button
                                     onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -180,7 +179,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     options={[
                                         {
                                             label: 'View Profile',
-                                            href: `/profile/${userDetails.id}`,
+                                            href: `/user/${userDetails.username}`,
                                             icon: <FontAwesomeIcon icon={faUserCircle} />
                                         },
                                         {

@@ -68,12 +68,11 @@ export async function GET(
             }, { status: 404 });
         }
 
-        const isBookmarked = userId && recipe.bookmarks ? recipe.bookmarks.length > 0 : false;
+        const isBookmarked = recipe.bookmarks ? recipe.bookmarks.length > 0 : false;
 
         const recipeWithBookmarkStatus = {
             ...recipe,
-            isBookmarked,
-            bookmarks: undefined
+            isBookmarked: isBookmarked,
         };
 
         return NextResponse.json({
@@ -127,7 +126,6 @@ export async function PUT(
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get("action");
 
-        // Verify user is authenticated for all PUT actions
         const session = await getSession();
         if (!session || !session.userId) {
             return NextResponse.json({
@@ -139,7 +137,6 @@ export async function PUT(
 
         switch (action) {
             case "bookmark": {
-                // Check if recipe exists
                 const recipeExists = await prisma.recipe.findUnique({
                     where: { recipe_id: Number(recipeId) }
                 });
@@ -150,7 +147,6 @@ export async function PUT(
                     }, { status: 404 });
                 }
 
-                // Check if bookmark already exists
                 const existingBookmark = await prisma.bookmark.findUnique({
                     where: {
                         user_id_recipe_id: {
@@ -161,7 +157,6 @@ export async function PUT(
                 });
 
                 if (existingBookmark) {
-                    // Remove bookmark
                     await prisma.bookmark.delete({
                         where: {
                             bookmark_id: existingBookmark.bookmark_id
@@ -173,7 +168,6 @@ export async function PUT(
                         isBookmarked: false
                     }, { status: 200 });
                 } else {
-                    // Add bookmark
                     await prisma.bookmark.create({
                         data: {
                             user_id: userId,
@@ -187,6 +181,15 @@ export async function PUT(
                     }, { status: 200 });
                 }
             }
+            case "like_post": {
+
+            }
+            case "comment_post": {
+
+            }
+            case "reply_to_comment": {
+                
+            }
             default: {
                 return NextResponse.json({
                     error: "Invalid PUT action."
@@ -196,6 +199,34 @@ export async function PUT(
     } catch (error) {
         return NextResponse.json({
             error: `/api/recipe/[recipeId] PUT error: ${error}`
+        }, { status: 500 });
+    }
+}
+
+// Actions needed:
+// 1. Deleting a specific recipe post
+export async function DELETE(
+    req: NextRequest,
+    { params }: { params: Promise<{ recipeId: string }> }
+) {
+    const { recipeId } = await params;
+    try {
+        const searchParams = req.nextUrl.searchParams;
+        const action = searchParams.get("action");
+
+        switch (action) {
+            case "delete_post": {
+
+            }
+            default: {
+                return NextResponse.json({
+                    error: "Invalid DELETE recipe action."
+                }, { status: 400 })
+            }
+        }
+    } catch (error) {
+        return NextResponse.json({
+            error: `/api/recipe/[recipeId] DELETE error: ${error}`
         }, { status: 500 });
     }
 }

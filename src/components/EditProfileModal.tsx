@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { user } from '@/services/User';
 import { getSocialLinkInfo, isValidUrl, formatUrl } from '@/utils/socialLinks';
-import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface SocialLink {
     id: string;
@@ -29,6 +30,8 @@ interface EditProfileFormData {
     username: string;
     fullname: string;
     bio?: string;
+    gender?: string;
+    pronouns?: string;
     socialLinks: SocialLink[];
 }
 
@@ -43,6 +46,8 @@ interface EditProfileModalProps {
         profile_image: string;
         cover_photo?: string;
         bio?: string;
+        gender?: string;
+        pronouns?: string;
         social_links?: Record<string, string> | { [key: string]: string } | any;
     };
 }
@@ -76,6 +81,8 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
     const coverPhotoRef = useRef<HTMLInputElement>(null);
     const queryClient = useQueryClient();
 
+    const router = useRouter();
+
     const convertSocialLinksToArray = (socialLinks?: Record<string, string> | { [key: string]: string } | any): SocialLink[] => {
         if (!socialLinks || typeof socialLinks !== 'object') return [];
         
@@ -101,6 +108,8 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
             username: userProfile.username,
             fullname: userProfile.fullname,
             bio: userProfile.bio || '',
+            gender: userProfile.gender || '',
+            pronouns: userProfile.pronouns || '',
             socialLinks: convertSocialLinksToArray(userProfile.social_links)
         }
     });
@@ -146,6 +155,8 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
             formData.append('username', data.username);
             formData.append('fullname', data.fullname);
             formData.append('bio', data.bio || '');
+            formData.append('gender', data.gender || '');
+            formData.append('pronouns', data.pronouns || '');
             
             const socialLinksObject: Record<string, string> = {};
             data.socialLinks.forEach((link) => {
@@ -168,14 +179,29 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
                 formData.append('cover_photo', selectedCoverPhoto);
             }
 
-            await user.editUserProfile(userProfile.user_id, formData);
+            const usernameChanged = data.username !== userProfile.username;
+            const oldUsername = userProfile.username;
 
-            await queryClient.invalidateQueries({ 
-                queryKey: ['profile', userProfile.user_id] 
-            });
+            await user.editUserProfile(userProfile.username, formData);
+
+            if (usernameChanged) {
+                await queryClient.invalidateQueries({ 
+                    queryKey: ['profile', oldUsername]
+                });
+            } else {
+                await queryClient.invalidateQueries({
+                    queryKey: ['profile', userProfile.username]
+                });
+            }
             
-            toast.success('Profile updated successfully!');
             onClose();
+            toast.success('Profile updated successfully!');
+
+            if (usernameChanged) {
+                router.push(`/user/${data.username}`);
+            } else {
+                router.refresh();
+            }
         } catch (error) {
             console.error('Profile update error:', error);
             toast.error('Failed to update profile. Please try again.');
@@ -285,9 +311,9 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
                                         <button
                                             type="button"
                                             onClick={() => profileImageRef.current?.click()}
-                                            className="absolute -bottom-1 -right-1 bg-primary hover:bg-primary-hover text-white p-1.5 rounded-full shadow-md transition-colors"
+                                            className="absolute cursor-pointer -bottom-1 -right-1 bg-primary hover:bg-primary-hover text-white p-1 rounded-full shadow-md transition-colors"
                                         >
-                                            <FontAwesomeIcon icon={faCamera} size="sm" />
+                                            <FontAwesomeIcon icon={faCamera} size="lg" />
                                         </button>
                                         <input
                                             type="file"
@@ -372,6 +398,44 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
                                         placeholder="Tell us about yourself..."
                                     />
                                 </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-foreground mb-1">
+                                            Gender
+                                        </label>
+                                        <select
+                                            {...register('gender')}
+                                            className="w-full px-3 py-2 border border-input-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        >
+                                            <option value="">Select gender (optional)</option>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                            <option value="non-binary">Non-binary</option>
+                                            <option value="prefer-not-to-say">Prefer not to say</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-foreground mb-1">
+                                            Pronouns
+                                        </label>
+                                        <select
+                                            {...register('pronouns')}
+                                            className="w-full px-3 py-2 border border-input-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                        >
+                                            <option value="">Select pronouns (optional)</option>
+                                            <option value="he/him">He/Him</option>
+                                            <option value="she/her">She/Her</option>
+                                            <option value="they/them">They/Them</option>
+                                            <option value="he/they">He/They</option>
+                                            <option value="she/they">She/They</option>
+                                            <option value="any">Any pronouns</option>
+                                            <option value="ask">Ask me</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Social Links */}
@@ -443,7 +507,7 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
                                 <button
                                     type="button"
                                     onClick={handleModalClose}
-                                    className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                                    className="px-4 py-2 cursor-pointer text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
                                 >
                                     Cancel
                                 </button>

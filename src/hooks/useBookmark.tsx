@@ -6,7 +6,7 @@ import { recipe } from '@/services/Recipe';
 
 export const useBookmark = (initialBookmarkState: boolean = false) => {
     const [isBookmarked, setIsBookmarked] = useState(initialBookmarkState);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const toggleBookmark = async (recipeId: number) => {
         if (isLoading) return;
@@ -14,30 +14,30 @@ export const useBookmark = (initialBookmarkState: boolean = false) => {
         setIsLoading(true);
         const previousState = isBookmarked;
 
-        // Optimistic update
         setIsBookmarked(!isBookmarked);
 
         try {
-            const response = await recipe.toggleBookmark(recipeId);
+            await recipe.toggleBookmark(recipeId);
+
+            const updatedRecipeResponse = await recipe.getRecipe(recipeId);
+            const updatedRecipe = updatedRecipeResponse.recipe;
             
-            // Update with actual server state
-            setIsBookmarked(response.isBookmarked);
-            
-            toast.success(response.message, {
-                position: "bottom-right",
-                autoClose: 3000,
-            });
+            setIsBookmarked(updatedRecipe.isBookmarked || false);
+
+            toast.success(updatedRecipe.isBookmarked ? 'Recipe bookmarked!' : 'Bookmark removed!',
+                {
+                    position: "bottom-right",
+                    autoClose: 3000,
+                }
+            );
         } catch (error: any) {
-            // Revert optimistic update on error
             setIsBookmarked(previousState);
-            
+
             const errorMessage = error?.message || 'Failed to update bookmark. Please try again.';
             toast.error(errorMessage, {
                 position: "bottom-right",
                 autoClose: 3000,
             });
-            
-            console.error('Bookmark toggle error:', error);
         } finally {
             setIsLoading(false);
         }

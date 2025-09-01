@@ -30,6 +30,8 @@ model Users {
     cover_photo         String?         @db.Text
     bio                 String?         @db.Text
     social_links        Json?
+    gender              String?         @db.VarChar(20)
+    pronouns            String?         @db.VarChar(50)
     created_at    		DateTime  		@default(now())
     recipes       		Recipe[]
     comments      		Comment[]

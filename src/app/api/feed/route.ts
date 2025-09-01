@@ -7,7 +7,6 @@ import { getSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
 	try {
 		const session = await getSession();
-		const userId = session?.userId;
 
 		const recipeFeed = await prisma.recipe.findMany({
 			include: {
@@ -44,17 +43,7 @@ export async function GET(req: NextRequest) {
 						ingredient: true,
 					}
 				},
-				bookmarks: userId ? {
-					where: {
-						user_id: userId
-					},
-					select: {
-						user_id: true
-					}
-				} : {
-					where: {
-						user_id: -1 // This will return empty array for unauthenticated users
-					},
+				bookmarks: {
 					select: {
 						user_id: true
 					}
@@ -65,12 +54,9 @@ export async function GET(req: NextRequest) {
 			}
 		});
 
-		// Add bookmark information to each recipe
 		const recipesWithBookmarkInfo = recipeFeed.map(recipe => ({
 			...recipe,
-			isBookmarked: userId && recipe.bookmarks ? recipe.bookmarks.length > 0 : false,
-			// Remove the bookmarks array to reduce response size
-			bookmarks: undefined
+			isBookmarked: recipe.bookmarks ? recipe.bookmarks.length > 0 : false,
 		}));
 
 		return NextResponse.json({

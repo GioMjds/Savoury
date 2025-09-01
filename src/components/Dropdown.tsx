@@ -39,7 +39,6 @@ const Dropdown: FC<CustomDropdownProps> = ({
 }) => {
 	const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-	// Close dropdown when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (
@@ -51,7 +50,8 @@ const Dropdown: FC<CustomDropdownProps> = ({
 		};
 
 		document.addEventListener('mousedown', handleClickOutside);
-		return () => document.removeEventListener('mousedown', handleClickOutside);
+		return () =>
+			document.removeEventListener('mousedown', handleClickOutside);
 	}, [onClose]);
 
 	const getPositionClasses = () => {
@@ -78,7 +78,6 @@ const Dropdown: FC<CustomDropdownProps> = ({
 	return (
 		<div ref={dropdownRef} className="relative">
 			<div onClick={onToggle} />
-
 			<AnimatePresence>
 				{isOpen && (
 					<motion.div
@@ -89,26 +88,29 @@ const Dropdown: FC<CustomDropdownProps> = ({
 						className={`absolute ${getPositionClasses()} w-48 bg-white rounded-lg shadow-lg border border-border py-1 z-50`}
 					>
 						{/* User Info Header */}
-                        <div className="px-4 py-2 border-b border-border">
-                            <div className="flex items-center gap-3">
-                                <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200">
-                                    <Image
-                                        src={userDetails?.profile_image as string}
-                                        alt="Profile Image"
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-foreground truncate">
-                                        {userDetails?.fullname}
-                                    </p>
-                                    <p className="text-xs text-gray-500 truncate">
-                                        @{userDetails?.username}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+						{userDetails && (
+							<div className="px-4 py-2 border-b border-border">
+								<div className="flex items-center gap-3">
+									<div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+										<Image
+											src={userDetails?.profile_image as string}
+											alt="Profile Image"
+											fill
+											priority
+											className="object-cover"
+										/>
+									</div>
+									<div className="flex-1 min-w-0">
+										<p className="text-sm font-medium text-foreground truncate">
+											{userDetails?.fullname}
+										</p>
+										<p className="text-xs text-gray-500 truncate">
+											@{userDetails?.username}
+										</p>
+									</div>
+								</div>
+							</div>
+						)}
 
 						{/* Dropdown Items */}
 						{options.map((item, index) => (
@@ -116,22 +118,17 @@ const Dropdown: FC<CustomDropdownProps> = ({
 								{item.href ? (
 									<Link
 										href={item.href}
-										className={`
-                                            flex items-center gap-2 px-4 py-2 text-sm transition-colors
-                                            ${
-												item.variant === 'danger'
-													? 'text-error hover:bg-error-light'
-													: 'text-foreground hover:bg-accent'
+										className={`flex items-center gap-2 px-4 py-2 text-sm transition-colors
+                                            ${item.variant === 'danger'
+												? 'text-error hover:bg-error-light'
+												: 'text-foreground hover:bg-accent'
 											}
-                                            ${
-												item.disabled
-													? 'opacity-50 cursor-not-allowed'
-													: 'cursor-pointer'
+                                            ${item.disabled
+												? 'opacity-50 cursor-not-allowed'
+												: 'cursor-pointer'
 											}
                                         `}
-										onClick={() =>
-											!item.disabled && onClose()
-										}
+										onClick={() => !item.disabled && onClose()}
 									>
 										{item.icon && (
 											<span className="text-base">
@@ -144,17 +141,14 @@ const Dropdown: FC<CustomDropdownProps> = ({
 									<button
 										onClick={() => handleItemClick(item)}
 										disabled={item.disabled}
-										className={`
-                                            w-full text-left flex items-center gap-2 px-4 py-2 text-sm transition-colors
-                                            ${
-												item.variant === 'danger'
-													? 'text-error hover:bg-error-light'
-													: 'text-foreground hover:bg-accent'
+										className={`w-full text-left flex items-center gap-2 px-4 py-2 text-sm transition-colors
+                                            ${item.variant === 'danger'
+												? 'text-error hover:bg-error-light'
+												: 'text-foreground hover:bg-accent'
 											}
-                                            ${
-												item.disabled
-													? 'opacity-50 cursor-not-allowed'
-													: 'cursor-pointer'
+                                            ${item.disabled
+												? 'opacity-50 cursor-not-allowed'
+												: 'cursor-pointer'
 											}
                                         `}
 									>
@@ -165,11 +159,6 @@ const Dropdown: FC<CustomDropdownProps> = ({
 										)}
 										{item.label}
 									</button>
-								)}
-
-								{/* Add separator before last item if it's a danger variant */}
-								{item.variant === 'danger' && index > 0 && (
-									<hr className="my-1 border-border" />
 								)}
 							</div>
 						))}

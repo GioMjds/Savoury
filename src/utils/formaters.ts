@@ -1,3 +1,5 @@
+import { faMars, faVenus } from "@fortawesome/free-solid-svg-icons";
+
 export const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -17,7 +19,7 @@ export const formatTime = (minutes?: number) => {
 };
 
 export const formatCategory = (category: string) => {
-        const categoryMappings: Record<string, string> = {
+    const categoryMappings: Record<string, string> = {
         'breakfast': '🌅 Breakfast',
         'lunch': '🥪 Lunch', 
         'dinner': '🍽️ Dinner',
@@ -31,4 +33,15 @@ export const formatCategory = (category: string) => {
     };
 
     return categoryMappings[category.toLowerCase()] || category.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+export const formatGender = (gender: string) => {
+    switch (gender.toLowerCase()) {
+        case 'male':
+            return { label: 'Male', icon: faMars, color: '#3b82f6' };
+        case 'female':
+            return { label: 'Female', icon: faVenus, color: '#ec4899' };
+        default:
+            return { label: 'Other', icon: null };
+    }
 }
