@@ -97,7 +97,16 @@ export async function POST(
         const action = searchParams.get("action");
 
         switch (action) {
-            case "": {
+            case "like_post": {
+
+            }
+            case "new_comment": {
+
+            }
+            case "rate_recipe": {
+
+            }
+            case "reply_to_comment": {
 
             }
             default: {
@@ -115,8 +124,6 @@ export async function POST(
 
 // Action(s) needed:
 // 1. Editing a specific recipe post
-// 2. For updating other users' like(s) interaction
-// 3. For toggling bookmark status
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ recipeId: string }> }
@@ -125,11 +132,11 @@ export async function PUT(
     try {
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get("action");
-
         const session = await getSession();
+
         if (!session || !session.userId) {
             return NextResponse.json({
-                error: "Authentication required"
+                error: "Unauthorized - No session found"
             }, { status: 401 });
         }
 
@@ -181,13 +188,7 @@ export async function PUT(
                     }, { status: 200 });
                 }
             }
-            case "like_post": {
-
-            }
-            case "comment_post": {
-
-            }
-            case "reply_to_comment": {
+            case "edit_recipe_post": {
                 
             }
             default: {

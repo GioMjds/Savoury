@@ -51,6 +51,10 @@ class FeedService {
 			},
 		});
 	}
+
+	async searchRecipePost() {
+		// Implement search functionality
+	}
 }
 
 export const feed = new FeedService();

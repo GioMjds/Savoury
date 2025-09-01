@@ -9,25 +9,12 @@ export const metadata: Metadata = {
 };
 
 export default async function Feed() {
-    const queryClient = new QueryClient({
-        defaultOptions: {
-            queries: {
-                staleTime: 1000 * 60 * 5, // 5 minutes
-                gcTime: 1000 * 60 * 10, // 10 minutes
-            },
-        },
-    });
+    const queryClient = new QueryClient();
 
-    // Prefetch feed data for faster initial load
-    try {
-        await queryClient.prefetchQuery({
-            queryKey: ['feed'],
-            queryFn: feed.fetchFeed,
-        });
-    } catch (error) {
-        // Handle prefetch errors gracefully - let client handle the fetch
-        console.warn('Feed prefetch failed:', error);
-    }
+    await queryClient.prefetchQuery({
+        queryKey: ['feed'],
+        queryFn: feed.fetchFeed,
+    });
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>

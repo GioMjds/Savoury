@@ -96,12 +96,12 @@ const Dropdown: FC<CustomDropdownProps> = ({
 											src={userDetails?.profile_image as string}
 											alt="Profile Image"
 											fill
-											priority
+											loading="lazy"
 											className="object-cover"
 										/>
 									</div>
 									<div className="flex-1 min-w-0">
-										<p className="text-sm font-medium text-foreground truncate">
+										<p className="text-sm font-bold text-foreground truncate">
 											{userDetails?.fullname}
 										</p>
 										<p className="text-xs text-gray-500 truncate">

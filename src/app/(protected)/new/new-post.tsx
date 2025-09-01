@@ -5,12 +5,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { NewRecipeForm } from '@/types/FeedResponse';
 import { toast } from 'react-toastify';
 import { feed } from '@/services/Feed';
 import { useRouter } from 'next/navigation';
 import PostPreview from '@/components/PostPreview';
-import Modal from '@/components/Modal';
 
 interface NewPostProps {
 	userId: number;
@@ -26,11 +27,8 @@ enum TabId {
 }
 
 export default function PostNewRecipe({ userId, fullName, username, profileImage }: NewPostProps) {
-	const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 	const [imagePreview, setImagePreview] = useState<string | null>(null);
 	const [activeTab, setActiveTab] = useState<TabId>(TabId.BASIC);
-	const [showConfirmModal, setShowConfirmModal] = useState<boolean>(false);
-	const [pendingFormData, setPendingFormData] = useState<NewRecipeForm | null>(null);
 
 	const router = useRouter();
 
@@ -110,33 +108,15 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 			router.refresh();
 			router.push('/feed');
 			setImagePreview(null);
-			setIsSubmitting(false);
-			setShowConfirmModal(false);
-			setPendingFormData(null);
 			reset();
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'Failed to post recipe.');
-			setIsSubmitting(false);
-			setShowConfirmModal(false);
-			setPendingFormData(null);
 		},
 	});
 
 	const onSubmit: SubmitHandler<NewRecipeForm> = (data) => {
 		mutation.mutate(data);
-	};
-
-	const handleConfirmPost = () => {
-		if (pendingFormData) {
-			mutation.mutate(pendingFormData);
-			setShowConfirmModal(false);
-		}
-	};
-
-	const handleCancelPost = () => {
-		setShowConfirmModal(false);
-		setPendingFormData(null);
 	};
 
 	const tabs = [
@@ -162,20 +142,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 							onClick={() => router.back()}
 							className="flex items-center cursor-pointer gap-2 text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-white/50"
 						>
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								className="h-5 w-5"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M15 19l-7-7 7-7"
-								/>
-							</svg>
+							<FontAwesomeIcon icon={faArrowLeft} />
 							Back
 						</button>
 						
@@ -299,7 +266,9 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 												Description
 											</label>
 											<textarea
-												{...register('description')}
+												{...register('description', {
+													required: "Food recipe description is required."
+												})}
 												className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
 												placeholder="Describe your recipe..."
 												rows={8}
@@ -369,7 +338,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 														width={160}
 														height={160}
 														priority
-														className="rounded-lg border border-border object-cover h-40 w-full"
+														className="rounded-lg border border-border object-cover h-80 w-full"
 													/>
 													<button
 														type="button"
@@ -649,11 +618,12 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 									) : (
 										<motion.button
 											type="submit"
+											whileHover={{ scale: 1.05 }}
 											whileTap={{ scale: 0.97 }}
-											disabled={isSubmitting}
+											disabled={mutation.isPending}
 											className="px-6 py-2 cursor-pointer bg-primary text-white rounded-lg font-medium hover:bg-primary-hover transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
 										>
-											{isSubmitting ? (
+											{mutation.isPending ? (
 												<span className="flex items-center">
 													<svg
 														className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -713,19 +683,6 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 					</motion.div>
 				</div>
 			</div>
-
-			{/* Confirmation Modal */}
-			<Modal
-				isOpen={showConfirmModal}
-				onCancel={handleCancelPost}
-				onConfirm={handleConfirmPost}
-				title="Confirm Recipe Post"
-				description={`Are you sure you want to post this recipe? Once posted, it will be visible to other users.`}
-				cancelText="Cancel"
-				confirmText="Post Recipe"
-				loading={mutation.isPending}
-				loadingText="Posting..."
-			/>
 		</div>
 	);
 }

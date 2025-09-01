@@ -86,34 +86,20 @@ const PostPreview = ({
                 </div>
 
                 {/* Enhanced Recipe Image */}
-                <div className="relative h-72 bg-gradient-to-br from-accent via-muted to-primary-lighter">
+                <div className="relative h-80 bg-gradient-to-br from-accent via-muted to-primary-lighter">
                     {imagePreview ? (
-                        <>
-                            <Image
-                                src={imagePreview}
-                                alt={'Recipe preview'}
-                                fill
-                                priority
-                                className="object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
-                        </>
+                        <Image
+                            src={imagePreview}
+                            alt={'Recipe preview'}
+                            fill
+                            priority
+                            className="object-cover"
+                        />
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <motion.div 
-                                className="text-center"
-                                animate={{ 
-                                    scale: [1, 1.05, 1],
-                                    opacity: [0.7, 1, 0.7]
-                                }}
-                                transition={{ 
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faUtensils} className="w-16 h-16 text-primary/40 mx-auto mb-3" />
-                                <p className="text-primary/60 font-medium">Upload your delicious creation</p>
+                            <motion.div className="text-center">
+                                <FontAwesomeIcon icon={faUtensils} size='3x' color='#55ad9b' className="mx-auto mb-3" />
+                                <p className="text-primary font-medium">Upload your delicious creation</p>
                                 <p className="text-sm text-muted mt-1">Recipe image will appear here</p>
                             </motion.div>
                         </div>
