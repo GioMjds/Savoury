@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { recipe } from '@/services/Recipe';
+import { recipeAction } from '@/services/Recipe';
 
 export const useBookmark = (initialBookmarkState: boolean = false) => {
     const [isBookmarked, setIsBookmarked] = useState(initialBookmarkState);
@@ -17,9 +17,9 @@ export const useBookmark = (initialBookmarkState: boolean = false) => {
         setIsBookmarked(!isBookmarked);
 
         try {
-            await recipe.toggleBookmark(recipeId);
+            await recipeAction.toggleBookmark(recipeId);
 
-            const updatedRecipeResponse = await recipe.getRecipe(recipeId);
+            const updatedRecipeResponse = await recipeAction.getRecipe(recipeId);
             const updatedRecipe = updatedRecipeResponse.recipe;
             
             setIsBookmarked(updatedRecipe.isBookmarked || false);

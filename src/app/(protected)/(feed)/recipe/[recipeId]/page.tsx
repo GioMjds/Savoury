@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import GetRecipePost from "./get-recipe-post";
-import { recipe } from "@/services/Recipe";
+import { recipeAction } from "@/services/Recipe";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata(
@@ -10,7 +10,7 @@ export async function generateMetadata(
     const { recipeId } = await params;
 
     try {
-        const data = await recipe.getRecipe(recipeId);
+        const data = await recipeAction.getRecipe(recipeId);
 
         if (!data) {
             return {
@@ -38,7 +38,7 @@ export default async function RecipePostId({ params }: { params: Promise<{ recip
     try {
         const data = await queryClient.fetchQuery({
             queryKey: ['recipeId', recipeId],
-            queryFn: () => recipe.getRecipe(recipeId)
+            queryFn: () => recipeAction.getRecipe(recipeId)
         });
         if (!data) return notFound();
     } catch (error) {

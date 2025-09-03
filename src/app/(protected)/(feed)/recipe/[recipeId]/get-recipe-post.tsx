@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { recipe } from '@/services/Recipe';
+import { recipeAction } from '@/services/Recipe';
 import { formatDate, formatTime, formatCategory } from '@/utils/formaters';
 import type { Recipe } from '@/types/RecipeResponse';
 import Image from 'next/image';
@@ -15,22 +15,15 @@ interface RecipePostProps {
 }
 
 export default function GetRecipePost({ recipeId }: RecipePostProps) {
-	const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>(
-		'ingredients'
-	);
+	const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients');
 
 	const { data } = useQuery({
 		queryKey: ['recipeId', recipeId],
-		queryFn: () => recipe.getRecipe(recipeId),
+		queryFn: () => recipeAction.getRecipe(recipeId),
 		refetchOnWindowFocus: false,
 	});
 
 	const recipeData: Recipe = data.recipe;
-	const averageRating =
-		recipeData.ratings.length > 0
-			? recipeData.ratings.reduce((sum, r) => sum + r.rating, 0) /
-			  recipeData.ratings.length
-			: 0;
 
 	return (
 		<div className="min-h-screen bg-background">
@@ -67,28 +60,6 @@ export default function GetRecipePost({ recipeId }: RecipePostProps) {
 											{formatCategory(recipeData?.category)}
 										</span>
 									</motion.div>
-
-									{/* Rating Badge */}
-									{averageRating > 0 && (
-										<motion.div
-											initial={{ opacity: 0, scale: 0.8 }}
-											animate={{ opacity: 1, scale: 1 }}
-											transition={{ delay: 0.4 }}
-											className="absolute top-4 right-4"
-										>
-											<div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-foreground shadow-md flex items-center gap-1">
-												<span className="text-yellow-500">
-													⭐
-												</span>
-												<span>
-													{averageRating.toFixed(1)}
-												</span>
-												<span className="text-muted">
-													({recipeData.ratings.length})
-												</span>
-											</div>
-										</motion.div>
-									)}
 								</div>
 
 								{/* Recipe Info */}

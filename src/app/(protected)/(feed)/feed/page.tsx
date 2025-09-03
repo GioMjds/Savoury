@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { feed } from "@/services/Feed";
 import FeedPage from "./feed";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
     title: "Your Feed",
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
 
 export default async function Feed() {
     const queryClient = new QueryClient();
+    const currentUser = await getCurrentUser();
+    const currentUserId = currentUser?.user_id || null;
 
     await queryClient.prefetchQuery({
         queryKey: ['feed'],
@@ -18,7 +21,7 @@ export default async function Feed() {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <FeedPage />
+            <FeedPage currentUserId={currentUserId} />
         </HydrationBoundary>
     );
 };

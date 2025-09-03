@@ -2,8 +2,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { feed, type FeedRecipe } from '@/services/Feed';
+import { feed } from '@/services/Feed';
 import PostBlock from '@/components/PostBlock';
+import { FeedRecipe, FeedResponse } from '@/types/FeedResponse';
 
 const fadeIn = {
 	initial: { opacity: 0 },
@@ -11,8 +12,12 @@ const fadeIn = {
 	transition: { duration: 0.3 },
 };
 
-export default function FeedPage() {
-	const { data: feedData } = useQuery({
+interface FeedPageProps {
+	currentUserId: number | null;
+}
+
+export default function FeedPage({ currentUserId }: FeedPageProps) {
+	const { data: feedData } = useQuery<FeedResponse>({
 		queryKey: ['feed'],
 		queryFn: feed.fetchFeed,
 		staleTime: 1000 * 60 * 5,
@@ -33,7 +38,7 @@ export default function FeedPage() {
 								{...fadeIn}
 								className="text-center py-16"
 							>
-								<div className="max-w-xl mx-auto">
+								<div className="max-w-4xl mx-auto">
 									<div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
 										<span className="text-4xl">🍽️</span>
 									</div>
@@ -59,7 +64,7 @@ export default function FeedPage() {
 										className="w-4xl"
 									>
 										<div className="border border-border rounded-xl overflow-hidden hover:shadow-md transition-all duration-300">
-											<PostBlock recipe={recipe} />
+											<PostBlock recipe={recipe} currentUserId={currentUserId} />
 										</div>
 									</div>
 								))}

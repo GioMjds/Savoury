@@ -8,76 +8,91 @@ export async function GET(
 ) {
     const { recipeId } = await params;
     try {
+        const searchParams = req.nextUrl.searchParams;
+        const action = searchParams.get('action');
+
         const session = await getSession();
         const userId = session?.userId;
 
-        const recipe = await prisma.recipe.findUnique({
-            where: { recipe_id: Number(recipeId) },
-            include: {
-                comments: {
-                    select: {
-                        comment_text: true,
-                        created_at: true,
-                        user: true,
+        switch (action) {
+            case "get_recipe_post": {
+                const recipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                    include: {
+                        user: {
+                            select: {
+                                user_id: true,
+                                fullname: true,
+                                profile_image: true,
+                                username: true,
+                            }
+                        },
+                        instructions: {
+                            select: {
+                                step_number: true,
+                                step_text: true,
+                            },
+                            orderBy: {
+                                step_number: 'asc'
+                            }
+                        },
+                        recipeIngredients: {
+                            select: {
+                                ingredient: true,
+                                quantity: true,
+                                unit: true,
+                            }
+                        },
+                        comments: {
+                            include: {
+                                user: {
+                                    select: {
+                                        user_id: true,
+                                        fullname: true,
+                                        username: true,
+                                        profile_image: true,
+                                    }
+                                }
+                            },
+                            orderBy: {
+                                created_at: "desc"
+                            }
+                        },
+                        userLikes: userId ? {
+                            where: { user_id: userId }
+                        } : false,
+                        bookmarks: userId ? {
+                            where: { user_id: userId },
+                            select: {
+                                user_id: true
+                            }
+                        } : false
                     }
-                },
-                ratings: {
-                    select: {
-                        rating: true,
-                        created_at: true,
-                    }
-                },
-                user: {
-                    select: {
-                        user_id: true,
-                        fullname: true,
-                        profile_image: true,
-                        username: true,
-                    }
-                },
-                instructions: {
-                    select: {
-                        step_number: true,
-                        step_text: true,
-                    },
-                    orderBy: {
-                        step_number: 'asc'
-                    }
-                },
-                recipeIngredients: {
-                    select: {
-                        ingredient: true,
-                        quantity: true,
-                        unit: true,
-                    }
-                },
-                bookmarks: userId ? {
-                    where: {
-                        user_id: userId
-                    },
-                    select: {
-                        user_id: true
-                    }
-                } : false
+                });
+
+                if (!recipe) {
+                    return NextResponse.json({
+                        error: "Recipe not found"
+                    }, { status: 404 });
+                }
+
+                const recipeWithFlags = {
+                    ...recipe,
+                    isLiked: userId ? recipe.userLikes.length > 0 : false,
+                    isBookmarked: userId ? recipe.bookmarks.length > 0 : false
+                };
+
+                return NextResponse.json({
+                    success: true,
+                    data: recipeWithFlags
+                }, { status: 200 });
             }
-        });
-
-        if (!recipe) {
-            return NextResponse.json({
-                error: "Recipe not found"
-            }, { status: 404 });
+            default: {
+                return NextResponse.json({
+                    error: "Invalid GET action"
+                }, { status: 400 });
+            }
         }
-
-        const isBookmarked = recipe.bookmarks ? recipe.bookmarks.length > 0 : false;
-
-        const recipeWithBookmarkStatus = {
-            ...recipe,
-            isBookmarked: isBookmarked,
-        };
-
-        return NextResponse.json({
-            recipe: recipeWithBookmarkStatus
-        }, { status: 200 });
     } catch (error) {
         return NextResponse.json({
             error: `/api/recipe/[recipeId] GET error: ${error}`
@@ -95,15 +110,80 @@ export async function POST(
     try {
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get("action");
+        const session = await getSession();
+
+        if (!session) {
+            return NextResponse.json({
+                error: "Unauthorized - No session found"
+            }, { status: 401 });
+        }
+
+        const userId = session.userId;
 
         switch (action) {
             case "like_post": {
+                const recipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                    select: {
+                        recipe_id: true,
+                        user: true,
+                        likes: true,
+                    }
+                });
 
+                if (!recipe) {
+                    return NextResponse.json({
+                        error: "Recipe not found"
+                    }, { status: 404 });
+                }
+
+                const existingLike = await prisma.userLike.findUnique({
+                    where: {
+                        user_id_recipe_id: {
+                            user_id: userId,
+                            recipe_id: Number(recipeId)
+                        }
+                    }
+                });
+
+                if (existingLike) {
+                    return NextResponse.json({
+                        error: "You have already liked this post."
+                    }, { status: 409 })
+                }
+
+                await prisma.$transaction(async (tx) => {
+                    await tx.userLike.create({
+                        data: {
+                            user_id: userId,
+                            recipe_id: Number(recipeId)
+                        }
+                    });
+
+                    await tx.recipe.update({
+                        where: { recipe_id: Number(recipeId) },
+                        data: {
+                            likes: { increment: 1 }
+                        }
+                    });
+                });
+
+                const updatedRecipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                    select: { likes: true }
+                });
+
+                return NextResponse.json({
+                    success: true,
+                    message: "Recipe liked successfully",
+                    data: {
+                        isLiked: true,
+                        likesCount: updatedRecipe?.likes || 0,
+                        recipeId: Number(recipeId)
+                    }
+                }, { status: 200 });
             }
             case "new_comment": {
-
-            }
-            case "rate_recipe": {
 
             }
             case "reply_to_comment": {
@@ -191,6 +271,9 @@ export async function PUT(
             case "edit_recipe_post": {
                 
             }
+            case "edit_comment": {
+
+            }
             default: {
                 return NextResponse.json({
                     error: "Invalid PUT action."
@@ -205,7 +288,9 @@ export async function PUT(
 }
 
 // Actions needed:
-// 1. Deleting a specific recipe post
+// 1. Deleting a recipe post
+// 2. Unliking a recipe post
+// 3. Deleting a comment
 export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ recipeId: string }> }
@@ -214,9 +299,88 @@ export async function DELETE(
     try {
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get("action");
+        const session = await getSession();
+
+        if (!session) {
+            return NextResponse.json({
+                error: "Unauthorized - No session found"
+            }, { status: 401 });
+        }
+
+        const userId = session.userId;
 
         switch (action) {
             case "delete_post": {
+                
+            }
+            case "unlike_post": {
+                const recipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                    select: {
+                        recipe_id: true,
+                        user_id: true,
+                        likes: true
+                    }
+                });
+
+                if (!recipe) {
+                    return NextResponse.json({
+                        error: "Recipe not found"
+                    }, { status: 404 });
+                }
+
+                const existingLike = await prisma.userLike.findUnique({
+                    where: {
+                        user_id_recipe_id: {
+                            user_id: userId,
+                            recipe_id: Number(recipeId)
+                        }
+                    }
+                });
+
+                if (!existingLike) {
+                    return NextResponse.json({
+                        error: "You haven't liked this recipe yet"
+                    }, { status: 409 });
+                }
+
+                // Remove the like and update recipe likes count
+                await prisma.$transaction(async (tx) => {
+                    await tx.userLike.delete({
+                        where: {
+                            user_id_recipe_id: {
+                                user_id: userId,
+                                recipe_id: Number(recipeId)
+                            }
+                        }
+                    });
+
+                    await tx.recipe.update({
+                        where: { recipe_id: Number(recipeId) },
+                        data: {
+                            likes: {
+                                decrement: 1
+                            }
+                        }
+                    });
+                });
+
+                const updatedRecipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                    select: { likes: true }
+                });
+
+                return NextResponse.json({
+                    success: true,
+                    message: "Recipe unliked successfully",
+                    data: {
+                        isLiked: false,
+                        likesCount: updatedRecipe?.likes || 0,
+                        recipeId: Number(recipeId)
+                    }
+                }, { status: 200 });
+            }
+            case "delete_comment": {
 
             }
             default: {

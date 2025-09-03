@@ -7,62 +7,117 @@ import { getSession } from '@/lib/auth';
 export async function GET(req: NextRequest) {
 	try {
 		const session = await getSession();
-
-		const recipeFeed = await prisma.recipe.findMany({
-			include: {
-				user: {
-					select: {
-						user_id: true,
-						fullname: true,
-						username: true,
-						profile_image: true,
+		
+		if (!session || !session.userId) {
+			const publicRecipes = await prisma.recipe.findMany({
+				orderBy: { created_at: 'desc' },
+				include: {
+					user: {
+						select: {
+							user_id: true,
+							fullname: true,
+							username: true,
+							profile_image: true
+						}
 					},
-				},
-				ratings: {
+					recipeIngredients: {
+						include: {
+							ingredient: true
+						}
+					},
+					instructions: {
+						orderBy: { step_number: 'asc' }
+					},
+					comments: {
+						select: {
+							comment_id: true,
+							comment_text: true
+						}
+					},
+					userLikes: {
+						select: {
+							user_like_id: true,
+							user_id: true,
+							created_at: true,
+						}
+					},
+					bookmarks: {
+						select: {
+							user_id: true
+						}
+					},
+				}
+			});
+
+			const publicRecipesWithFlags = publicRecipes.map(recipe => ({
+				...recipe,
+				isLiked: session?.userId ? recipe.userLikes.length > 0 : false,
+				isBookmarked: session?.userId ? recipe.bookmarks.length > 0 : false,
+			}));
+
+			return NextResponse.json({
+				message: "Public recipe posts retrieved successfully",
+				feed: publicRecipesWithFlags,
+			}, { status: 200 });
+		}
+
+		const userId = session.userId;
+
+		const recipes = await prisma.recipe.findMany({
+            orderBy: { created_at: 'desc' },
+            include: {
+                user: {
+                    select: {
+                        user_id: true,
+                        fullname: true,
+                        username: true,
+                        profile_image: true
+                    }
+                },
+                recipeIngredients: {
+                    include: {
+                        ingredient: true
+                    }
+                },
+                instructions: {
+                    orderBy: { step_number: 'asc' }
+                },
+                comments: {
+                    select: {
+                        comment_id: true,
+                        comment_text: true
+                    }
+                },
+                userLikes: {
 					select: {
-						rating: true,
-						rating_id: true,
+						user_like_id: true,
+						user_id: true,
+						created_at: true,
 					}
-				},
-				comments: {
-					select: {
-						comment_id: true,
-						comment_text: true,
-					}
-				},
-				instructions: {
-					select: {
-						step_number: true,
-						step_text: true,
-					}
-				},
-				recipeIngredients: {
-					select: {
-						quantity: true,
-						unit: true,
-						ingredient: true,
-					}
-				},
-				bookmarks: {
+                },
+                bookmarks: {
 					select: {
 						user_id: true
 					}
-				}
-			},
-			orderBy: {
-				created_at: 'desc'
-			}
-		});
+                },
+            }
+        });
 
-		const recipesWithBookmarkInfo = recipeFeed.map(recipe => ({
-			...recipe,
-			isBookmarked: recipe.bookmarks ? recipe.bookmarks.length > 0 : false,
-		}));
+        const recipesWithFlags = recipes.map(recipe => {
+            const isLiked = userId ? recipe.userLikes.length > 0 : false;
+            const isBookmarked = userId ? recipe.bookmarks.length > 0 : false;
 
-		return NextResponse.json({
-			message: 'Feed data fetched successfully',
-			feed: recipesWithBookmarkInfo
-		}, { status: 200 });
+            return {
+                ...recipe,
+                isLiked,
+                isBookmarked
+            };
+        });
+
+        return NextResponse.json({
+            message: "Recipe posts retrieved successfully",
+            feed: recipesWithFlags,
+        }, { status: 200 });
 	} catch (error) {
 		return NextResponse.json({
 			error: `/feed GET error: ${error}`,

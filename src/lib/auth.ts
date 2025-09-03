@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
 import { JWTPayload, SignJWT, jwtVerify } from "jose";
 import prisma from "./prisma";
-import { Session } from "inspector/promises";
 
 interface SessionData extends JWTPayload {
     userId: number;
@@ -60,6 +58,22 @@ export async function createSession(userId: number) {
             .setExpirationTime("7d")
             .sign(encodedKey);
 
+        const cookieStore = await cookies();
+
+        cookieStore.set('access_token', accessToken, {
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24, // 1 day
+            path: '/',
+        });
+
+        cookieStore.set('refresh_token', refreshToken, {
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 30, // 30 days
+            path: '/',
+        });
+
         return { sessionData, accessToken, refreshToken };
     } catch (error) {
         console.error(`Error creating session: ${error}`);
@@ -75,14 +89,35 @@ export async function cookiesToDelete() {
     return ['access_token', 'refresh_token'];
 };
 
+export function isValidSession(session: any): session is SessionData {
+    return (
+        session &&
+        typeof session.userId === 'number' &&
+        typeof session.email === 'string' &&
+        typeof session.username === 'string'
+    );
+}
+
 export async function getSession(): Promise<SessionData | null> {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get("access_token")?.value;
-        if (!accessToken) return null;
+        const accessToken = cookieStore.get('access_token')?.value;
+        
+        if (!accessToken) {
+            return null;
+        }
+
+        if (typeof accessToken !== 'string' || accessToken.trim() === '') {
+            return null;
+        }
 
         const { payload } = await verifyToken(accessToken);
-        return payload as SessionData;
+        
+        if (!isValidSession(payload)) {
+            return null;
+        }
+        
+        return payload;
     } catch (error) {
         console.error(`Error getting session: ${error}`);
         return null;
@@ -107,5 +142,17 @@ export async function getCurrentUser() {
     } catch (error) {
         console.error(`Error getting current user: ${error}`);
         return null;
+    }
+}
+
+export async function deleteSession() {
+    try {
+        const cookieStore = await cookies();
+        cookieStore.delete('access_token');
+        cookieStore.delete('refresh_token');
+        return true;
+    } catch (error) {
+        console.error(`Error deleting session: ${error}`);
+        return false;
     }
 }

@@ -12,21 +12,49 @@ import {
 	faHeart,
 	faComment,
 	faShare,
-	faStar,
 	faBookmark as faBookmarkSolid,
 	faEllipsisH,
 } from '@fortawesome/free-solid-svg-icons';
-import { faBookmark as faBookmarkRegular } from '@fortawesome/free-regular-svg-icons';
+import { 
+	faBookmark as faBookmarkRegular, 
+	faHeart as faHeartRegular 
+} from '@fortawesome/free-regular-svg-icons';
 import { formatCategory, formatTime } from '@/utils/formaters';
 import { PostBlockProps } from '@/types/RecipeResponse';
 import { useBookmark } from '@/hooks/useBookmark';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { recipeAction } from '@/services/Recipe';
 
-const PostBlock = ({ recipe }: PostBlockProps) => {
-	const totalTime =
-		Number(recipe.prep_time_minutes) + Number(recipe.cook_time_minutes);
-	const averageRating = Number(recipe.average_rating);
-	const ratingsCount = recipe.ratings.length;
-	const commentsCount = recipe.comments.length;
+const PostBlock = ({ recipe, currentUserId }: PostBlockProps) => {
+	const queryClient = useQueryClient();
+
+	const isLikedByCurrentUser = currentUserId 
+		? recipe.userLikes?.some(like => like.user_id === currentUserId) || recipe.isLiked
+		: false;
+
+	const likeRecipe = useMutation({
+		mutationFn: async (recipeId: number) => {
+			return await recipeAction.likeRecipePost(recipeId);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['feed'] });
+		},
+		onError: (error) => {
+			console.error(`Error liking the recipe: ${error}`);
+		}
+	});
+
+	const unlikeRecipe = useMutation({
+		mutationFn: async (recipeId: number) => {
+			return await recipeAction.unlikeRecipePost(recipeId);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['feed'] });
+		},
+		onError: (error) => {
+			console.error(`Error unliking the recipe: ${error}`);
+		}
+	});
 
 	const {
 		isBookmarked,
@@ -39,6 +67,20 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 		e.stopPropagation();
 		await toggleBookmark(recipe.recipe_id);
 	};
+
+	const handleLikeClick = async (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+
+		if (isLikedByCurrentUser) {
+			unlikeRecipe.mutate(recipe.recipe_id);
+		} else {
+			likeRecipe.mutate(recipe.recipe_id);
+		}
+	}
+
+	const commentsCount = recipe.comments.length;
+	const isLikeLoading = likeRecipe.isPending || unlikeRecipe.isPending;
 
 	return (
 		<motion.article
@@ -59,6 +101,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 							alt={`${recipe.user.fullname}'s profile`}
 							width={48}
 							height={48}
+							loading="lazy"
 							className="object-cover"
 						/>
 					</div>
@@ -77,26 +120,14 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 					<button
 						onClick={handleBookmarkClick}
 						disabled={bookmarkLoading}
-						className={`p-2 rounded-full transition-all duration-200 hover:scale-110 disabled:opacity-70 disabled:cursor-not-allowed ${
-							isBookmarked
-								? 'text-yellow-400'
-								: 'text-muted hover:text-primary'
-						}`}
-						title={
-							isBookmarked
-								? 'Remove from bookmarks'
-								: 'Add to bookmarks'
-						}
+						className={`p-2 rounded-full cursor-pointer transition-all duration-200 hover:scale-110 disabled:opacity-70 disabled:cursor-not-allowed ${
+							isBookmarked ? 'text-yellow-400' : 'text-muted hover:text-primary'}`}
+						title={isBookmarked ? 'Remove from bookmarks' : 'Add to bookmarks'}
 					>
 						<FontAwesomeIcon
-							icon={
-								isBookmarked
-									? faBookmarkSolid
-									: faBookmarkRegular
-							}
+							icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular}
 							className={`transition-colors duration-200 ${
-								bookmarkLoading ? 'animate-pulse' : ''
-							}`}
+								bookmarkLoading ? 'animate-pulse' : ''}`}
 						/>
 					</button>
 					<button className="p-2 text-muted hover:text-foreground rounded-full transition-colors">
@@ -126,33 +157,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 								{formatCategory(recipe.category)}
 							</div>
 						)}
-
-						<div className="flex items-center gap-2">
-							{totalTime > 0 && (
-								<div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5">
-									<FontAwesomeIcon
-										icon={faClock}
-										className="w-4 h-4"
-									/>
-									{formatTime(totalTime)}
-								</div>
-							)}
-						</div>
 					</div>
-
-					{/* Rating overlay at bottom */}
-					{averageRating > 0 && (
-						<div className="absolute bottom-4 right-4 bg-yellow-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5">
-							<FontAwesomeIcon
-								icon={faStar}
-								className="text-yellow-200 w-4 h-4"
-							/>
-							<span>{averageRating.toFixed(1)}</span>
-							<span className="opacity-75 text-xs">
-								({ratingsCount})
-							</span>
-						</div>
-					)}
 				</div>
 			</Link>
 
@@ -180,7 +185,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 								icon={faClock}
 								className="w-5 h-5 text-primary mb-2 mx-auto"
 							/>
-							<p className="text-sm text-muted mb-1">Prep</p>
+							<p className="text-sm text-muted mb-1">Preparation Time</p>
 							<p className="text-md font-semibold text-foreground">
 								{formatTime(recipe.prep_time_minutes)}
 							</p>
@@ -192,7 +197,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 								icon={faUtensils}
 								className="w-5 h-5 text-primary mb-2 mx-auto"
 							/>
-							<p className="text-sm text-muted mb-1">Cook</p>
+							<p className="text-sm text-muted mb-1">Cook Time</p>
 							<p className="text-md font-semibold text-foreground">
 								{formatTime(recipe.cook_time_minutes)}
 							</p>
@@ -226,10 +231,7 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 										key={index}
 										className="text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full"
 									>
-										{
-											recipeIngredient.ingredient
-												.ingredient_name
-										}
+										{recipeIngredient.ingredient.ingredient_name}
 									</span>
 								))}
 							{recipe.recipeIngredients.length > 4 && (
@@ -244,13 +246,20 @@ const PostBlock = ({ recipe }: PostBlockProps) => {
 				{/* Action Bar */}
 				<div className="flex items-center justify-between pt-4 border-t border-border">
 					<div className="flex items-center gap-5">
-						<button className="flex items-center gap-2 text-muted hover:text-red-500 transition-colors duration-200">
-							<FontAwesomeIcon
-								icon={faHeart}
-								className="w-5 h-5"
-							/>
-							<span className="text-md font-medium">Like</span>
-						</button>
+						<button 
+                            onClick={handleLikeClick}
+                            disabled={isLikeLoading || !currentUserId}
+                            className={`flex cursor-pointer items-center gap-2 transition-all duration-200 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed ${
+                                isLikedByCurrentUser ? 'text-red-500' : 'text-muted hover:text-red-500'}`}
+                        >
+                            <FontAwesomeIcon
+                                icon={isLikedByCurrentUser ? faHeart : faHeartRegular}
+                                className="w-5 h-5 transition-all duration-200"
+                            />
+                            <span className="text-md font-medium">
+                                {recipe.likes > 0 ? recipe.likes : 'Like'}
+                            </span>
+                        </button>
 
 						<Link
 							href={`/recipe/${recipe.recipe_id}#comments`}

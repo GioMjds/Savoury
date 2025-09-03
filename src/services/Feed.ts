@@ -1,9 +1,9 @@
 import { httpClient } from '@/configs/axios';
-import { RecipeData, FeedResponse, FeedRecipe } from '@/types/FeedResponse';
+import { FeedResponse, RecipeData } from '@/types/FeedResponse';
 
 class FeedService {
 	async fetchFeed(): Promise<FeedResponse> {
-		return await httpClient.get<FeedResponse>('/feed');
+		return await httpClient.get('/feed');
 	}
 
 	async postNewRecipe(recipeData: RecipeData) {
@@ -18,17 +18,11 @@ class FeedService {
 		}
 
 		if (recipeData.prep_time_minutes) {
-			formData.append(
-				'prep_time_minutes',
-				recipeData.prep_time_minutes.toString()
-			);
+			formData.append('prep_time_minutes', recipeData.prep_time_minutes.toString());
 		}
 
 		if (recipeData.cook_time_minutes) {
-			formData.append(
-				'cook_time_minutes',
-				recipeData.cook_time_minutes.toString()
-			);
+			formData.append('cook_time_minutes', recipeData.cook_time_minutes.toString());
 		}
 
 		if (recipeData.servings) {
@@ -36,10 +30,7 @@ class FeedService {
 		}
 
 		formData.append('ingredients', JSON.stringify(recipeData.ingredients));
-		formData.append(
-			'instructions',
-			JSON.stringify(recipeData.instructions)
-		);
+		formData.append('instructions', JSON.stringify(recipeData.instructions));
 
 		if (recipeData.image_url instanceof File) {
 			formData.append('image_url', recipeData.image_url);
@@ -58,4 +49,3 @@ class FeedService {
 }
 
 export const feed = new FeedService();
-export type { FeedRecipe, FeedResponse };

@@ -89,7 +89,6 @@ export async function POST(req: NextRequest) {
                 response.cookies.set({
                     name: 'access_token',
                     value: session.accessToken,
-                    httpOnly: true,
                     secure: false,
                     sameSite: "lax",
                     path: "/",
@@ -99,7 +98,6 @@ export async function POST(req: NextRequest) {
                 response.cookies.set({
                     name: 'refresh_token',
                     value: session.refreshToken,
-                    httpOnly: true,
                     secure: false,
                     sameSite: "lax",
                     path: "/",

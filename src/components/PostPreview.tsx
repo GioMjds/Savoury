@@ -8,8 +8,7 @@ import {
     faUsers, 
     faUtensils,
     faListUl,
-    faTasks,
-    faEye
+    faTasks
 } from '@fortawesome/free-solid-svg-icons';
 import { formatCategory } from '@/utils/formaters';
 
@@ -48,9 +47,20 @@ const PostPreview = ({
 	username,
 	profileImage
 }: PostPreviewProps) => {
-	const totalTime = (prepTime || 0) + (cookTime || 0);
 	const validIngredients = ingredients.filter(ing => ing.ingredient_name?.trim());
 	const validInstructions = instructions.filter(inst => inst.value?.trim());
+
+    const formatDescription = (text: string) => {
+        if (!text) return '';
+
+        return text
+            .split('\n')
+            .map((line, index) => (
+                <span key={index} className="block">
+                    {line} {/* Use non-breaking space for empty lines */}
+                </span>
+            ));
+    };
 
 	return (
         <div className="space-y-6">
@@ -112,21 +122,6 @@ const PostPreview = ({
                                 {formatCategory(category)}
                             </div>
                         )}
-                        
-                        <div className="flex items-center gap-2">
-                            {totalTime > 0 && (
-                                <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5">
-                                    <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
-                                    {totalTime}m
-                                </div>
-                            )}
-                            {servings > 0 && (
-                                <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5">
-                                    <FontAwesomeIcon icon={faUsers} className="w-3 h-3" />
-                                    {servings}
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
 
@@ -140,7 +135,7 @@ const PostPreview = ({
                             )}
                         </h2>
                         <p className="text-muted leading-relaxed">
-                            {description || (
+                            {formatDescription(description) || (
                                 <span className="italic">Add a mouth-watering description of your recipe...</span>
                             )}
                         </p>

@@ -50,7 +50,10 @@ export interface FeedRecipeUser {
 }
 
 export interface FeedRecipeIngredient {
-    quantity: number | null;
+    recipe_ingredient_id?: number;
+    recipe_id?: number;
+    ingredient_id?: number;
+    quantity: number | string | null;
     unit: string | null;
     ingredient: {
         ingredient_id: number;
@@ -59,6 +62,8 @@ export interface FeedRecipeIngredient {
 }
 
 export interface FeedRecipeInstruction {
+    instruction_id?: number;
+    recipe_id?: number;
     step_number: number;
     step_text: string;
 }
@@ -75,6 +80,7 @@ export interface FeedRecipeComment {
 
 export interface FeedRecipe {
     recipe_id: number;
+    user_id?: number;
     title: string;
     description: string | null;
     image_url: string | null;
@@ -82,17 +88,21 @@ export interface FeedRecipe {
     cook_time_minutes: number | null;
     servings: number | null;
     category: string;
-    average_rating: number;
+    average_rating?: number;
     created_at: string;
     user: FeedRecipeUser;
+    likes: number;
     recipeIngredients: FeedRecipeIngredient[];
     instructions: FeedRecipeInstruction[];
-    ratings: FeedRecipeRating[];
+    ratings?: FeedRecipeRating[];
     comments: FeedRecipeComment[];
-    isBookmarked?: boolean;
+    userLikes: Array<{ user_like_id: number; user_id: number; created_at: string }>;
+    bookmarks: Array<{ user_id: number }>;
+    isBookmarked: boolean;
+    isLiked: boolean;
 }
 
 export interface FeedResponse {
-    message: string;
+    success: boolean;
     feed: FeedRecipe[];
 }

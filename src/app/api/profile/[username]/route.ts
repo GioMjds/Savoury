@@ -13,12 +13,10 @@ export async function GET(
             include: {
                 recipes: {
                     include: {
-                        ratings: true,
                         comments: true,
                         bookmarks: true,
                         _count: {
                             select: {
-                                ratings: true,
                                 comments: true,
                                 bookmarks: true
                             }
@@ -50,7 +48,6 @@ export async function GET(
                     select: {
                         recipes: true,
                         bookmarks: true,
-                        ratings: true,
                         comments: true
                     }
                 }
@@ -77,15 +74,8 @@ export async function GET(
                 bio: user.bio,
                 gender: user.gender,
                 pronouns: user.pronouns,
-                social_links: socialLinks,
+                social_links: socialLinks, // JSON column in my Users table, that is why I need to parse it into JSON for extraction
                 created_at: user.created_at,
-                recipes: user.recipes.map(recipe => ({
-                    ...recipe,
-                    average_rating: recipe.ratings.length > 0 
-                        ? recipe.ratings.reduce((sum, r) => sum + r.rating, 0) / recipe.ratings.length 
-                        : 0,
-                    likes: recipe.ratings.filter(r => r.rating >= 4).length,
-                })),
                 bookmarks: user.bookmarks,
             },
         }, { status: 200 });

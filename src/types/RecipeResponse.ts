@@ -1,53 +1,63 @@
 interface RecipeUser {
-    user_id: number;
-    fullname: string;
-    username: string;
-    profile_image: string;
+	user_id: number;
+	fullname: string;
+	username: string;
+	profile_image: string;
 }
 
 interface RecipeIngredient {
-    quantity: number | null;
-    unit: string | null;
-    ingredient: {
-        ingredient_id: number;
-        ingredient_name: string;
-    };
+	quantity: number | null;
+	unit: string | null;
+	ingredient: {
+		ingredient_id: number;
+		ingredient_name: string;
+	};
 }
 
 interface RecipeInstruction {
-    step_number: number;
-    step_text: string;
-}
-
-interface RecipeRating {
-    rating_id: number;
-    rating: number;
+	step_number: number;
+	step_text: string;
 }
 
 interface RecipeComment {
-    comment_id: number;
-    comment_text: string;
+	comment_id: number;
+	comment_text: string;
+}
+
+export interface LikeApiResponse {
+	success: boolean;
+	message: string;
+	data: {
+		isLiked: boolean;
+		likesCount: number;
+		recipeId: number;
+	};
 }
 
 export interface Recipe {
-    recipe_id: number;
-    title: string;
-    description: string | null;
-    image_url: string | null;
-    prep_time_minutes: number | null;
-    cook_time_minutes: number | null;
-    servings: number | null;
-    category: string;
-    average_rating: number;
-    created_at: string;
-    user: RecipeUser;
-    recipeIngredients: RecipeIngredient[];
-    instructions: RecipeInstruction[];
-    ratings: RecipeRating[];
-    comments: RecipeComment[];
-    isBookmarked?: boolean;
+	recipe_id: number;
+	title: string;
+	description: string | null;
+	image_url: string | null;
+	prep_time_minutes: number | null;
+	cook_time_minutes: number | null;
+	servings: number | null;
+	category: string;
+	created_at: string;
+	likes: number;
+	user: RecipeUser;
+	recipeIngredients: RecipeIngredient[];
+	instructions: RecipeInstruction[];
+	comments: RecipeComment[];
+	userLikes: Array<{ user_like_id: number; user_id: number; created_at: string }>;
+	bookmarks: Array<{ user_id: number }>;
+	isBookmarked?: boolean;
+	isLiked: boolean;
 }
 
+export type UnifiedRecipe = Recipe | import("@/types/FeedResponse").FeedRecipe;
+
 export interface PostBlockProps {
-    recipe: Recipe;
+	recipe: UnifiedRecipe;
+	currentUserId: number | null;
 }
