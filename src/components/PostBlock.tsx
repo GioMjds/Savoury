@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { useSocket } from '@/contexts/SocketContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
 	faClock,
@@ -28,8 +29,10 @@ import { recipeAction } from '@/services/Recipe';
 const PostBlock = ({ recipe, currentUserId }: PostBlockProps) => {
 	const queryClient = useQueryClient();
 
+	const { sendLike } = useSocket();
+
 	const isLikedByCurrentUser = currentUserId 
-		? recipe.userLikes?.some(like => like.user_id === currentUserId) || recipe.isLiked
+		? recipe.userLikes?.some(like => like.user_id === currentUserId)
 		: false;
 
 	const likeRecipe = useMutation({
@@ -37,6 +40,13 @@ const PostBlock = ({ recipe, currentUserId }: PostBlockProps) => {
 			return await recipeAction.likeRecipePost(recipeId);
 		},
 		onSuccess: () => {
+			if (currentUserId) {
+				sendLike({
+					recipeId: recipe.recipe_id,
+					userId: currentUserId,
+					isLiked: true,
+				});
+			}
 			queryClient.invalidateQueries({ queryKey: ['feed'] });
 		},
 		onError: (error) => {
@@ -49,6 +59,13 @@ const PostBlock = ({ recipe, currentUserId }: PostBlockProps) => {
 			return await recipeAction.unlikeRecipePost(recipeId);
 		},
 		onSuccess: () => {
+			if (currentUserId) {
+				sendLike({
+					recipeId: recipe.recipe_id,
+					userId: currentUserId,
+					isLiked: false,
+				});
+			}
 			queryClient.invalidateQueries({ queryKey: ['feed'] });
 		},
 		onError: (error) => {
@@ -60,7 +77,7 @@ const PostBlock = ({ recipe, currentUserId }: PostBlockProps) => {
 		isBookmarked,
 		isLoading: bookmarkLoading,
 		toggleBookmark,
-	} = useBookmark(recipe.isBookmarked);
+	} = useBookmark(recipe.isBookmarked ?? false);
 
 	const handleBookmarkClick = async (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -101,7 +118,7 @@ const PostBlock = ({ recipe, currentUserId }: PostBlockProps) => {
 							alt={`${recipe.user.fullname}'s profile`}
 							width={48}
 							height={48}
-							loading="lazy"
+							priority
 							className="object-cover"
 						/>
 					</div>
@@ -146,7 +163,7 @@ const PostBlock = ({ recipe, currentUserId }: PostBlockProps) => {
 						src={recipe.image_url as string}
 						alt={recipe.title}
 						fill
-						loading="lazy"
+						priority
 						className="object-cover"
 					/>
 

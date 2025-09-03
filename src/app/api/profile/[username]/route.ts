@@ -71,6 +71,7 @@ export async function GET(
                 fullname: user.fullname,
                 profile_image: user.profile_image,
                 cover_photo: user.cover_photo,
+                recipes: user.recipes,
                 bio: user.bio,
                 gender: user.gender,
                 pronouns: user.pronouns,
@@ -107,12 +108,13 @@ export async function PUT(
         const coverPhotoFile = formData.get('cover_photo') as File | null;
         
         let parsedSocialLinks = null;
+
         if (socialLinksString) {
             try {
                 parsedSocialLinks = JSON.parse(socialLinksString);
             } catch {
                 return NextResponse.json({
-                    error: "Invalid social_links format"
+                    error: "Invalid social links format"
                 }, { status: 400 });
             }
         }

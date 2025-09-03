@@ -102,6 +102,7 @@ export async function GET(
 
 // Action(s) needed:
 // 1. For creating a new comment
+// 2. Liking a specific post
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ recipeId: string }> }
@@ -184,7 +185,7 @@ export async function POST(
                 }, { status: 200 });
             }
             case "new_comment": {
-
+                
             }
             case "reply_to_comment": {
 

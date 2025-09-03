@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
 
 			const publicRecipesWithFlags = publicRecipes.map(recipe => ({
 				...recipe,
-				isLiked: session?.userId ? recipe.userLikes.length > 0 : false,
-				isBookmarked: session?.userId ? recipe.bookmarks.length > 0 : false,
+				isLiked: recipe.userLikes.length > 0,
+				isBookmarked: recipe.bookmarks.length > 0,
 			}));
 
 			return NextResponse.json({
@@ -104,8 +104,8 @@ export async function GET(req: NextRequest) {
         });
 
         const recipesWithFlags = recipes.map(recipe => {
-            const isLiked = userId ? recipe.userLikes.length > 0 : false;
-            const isBookmarked = userId ? recipe.bookmarks.length > 0 : false;
+            const isLiked = recipe.userLikes.length > 0;
+            const isBookmarked = recipe.bookmarks.length > 0;
 
             return {
                 ...recipe,

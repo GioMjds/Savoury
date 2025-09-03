@@ -20,9 +20,9 @@ export const useBookmark = (initialBookmarkState: boolean = false) => {
             await recipeAction.toggleBookmark(recipeId);
 
             const updatedRecipeResponse = await recipeAction.getRecipe(recipeId);
-            const updatedRecipe = updatedRecipeResponse.recipe;
-            
-            setIsBookmarked(updatedRecipe.isBookmarked || false);
+            const updatedRecipe = updatedRecipeResponse.data || updatedRecipeResponse.recipe || updatedRecipeResponse;
+
+            setIsBookmarked(updatedRecipe.isBookmarked);
 
             toast.success(updatedRecipe.isBookmarked ? 'Recipe bookmarked!' : 'Bookmark removed!',
                 {

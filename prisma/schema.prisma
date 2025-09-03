@@ -20,6 +20,12 @@ enum FoodCategories {
     side_dish
 }
 
+enum NotificationType {
+    like
+    comment
+    bookmark
+}
+
 model Users {
     user_id       		Int       		@id @default(autoincrement())
     username      		String    		@unique @db.VarChar(25)
@@ -37,6 +43,9 @@ model Users {
     comments      		Comment[]
     bookmarks     		Bookmark[]
     userLikes           UserLike[]
+
+    sentNotifications       Notification[]      @relation("NotificationSender")
+    receivedNotifications   Notification[]      @relation("NotificationRecipient")
 }
 
 model UserLike {
@@ -71,6 +80,7 @@ model Recipe {
     comments          	Comment[]
     bookmarks           Bookmark[]
     userLikes           UserLike[]
+    notifications       Notification[]
 }
 
 model Ingredient {
@@ -127,4 +137,25 @@ model Bookmark {
     @@unique([user_id, recipe_id])
     @@index([user_id])
     @@index([recipe_id])
+}
+
+model Notification {
+    notification_id     Int                 @id @default(autoincrement())
+    recipient_id        Int                 // User receiving the notification
+    sender_id           Int                 // User who triggered the notification
+    recipe_id           Int?                // Optional: for recipe-related notifications
+    type                NotificationType
+    message             String              @db.Text
+    is_read             Boolean             @default(false)
+    created_at          DateTime            @default(now())
+    
+    // Relations
+    recipient           Users               @relation("NotificationRecipient", fields: [recipient_id], references: [user_id], onDelete: Cascade)
+    sender              Users               @relation("NotificationSender", fields: [sender_id], references: [user_id], onDelete: Cascade)
+    recipe              Recipe?             @relation(fields: [recipe_id], references: [recipe_id], onDelete: Cascade)
+    
+    @@index([recipient_id])
+    @@index([sender_id])
+    @@index([recipe_id])
+    @@index([created_at])
 }
