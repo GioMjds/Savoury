@@ -29,6 +29,9 @@ export async function GET(req: NextRequest) {
                         orderBy: { step_number: 'asc' }
                     },
                     comments: {
+                        where: {
+                            parent_comment_id: null
+                        },
                         include: {
                             user: {
                                 select: {
@@ -37,6 +40,32 @@ export async function GET(req: NextRequest) {
                                     fullname: true,
                                     profile_image: true,
                                 }
+                            },
+                            likes: {
+                                select: {
+                                    user_id: true
+                                }
+                            },
+                            replies: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            user_id: true,
+                                            username: true,
+                                            fullname: true,
+                                            profile_image: true,
+                                        }
+                                    },
+                                    likes: {
+                                        select: {
+                                            user_id: true
+                                        }
+                                    }
+                                },
+                                orderBy: {
+                                    created_at: 'asc'
+                                },
+                                take: 2 // Limit replies shown in feed
                             }
                         },
                         orderBy: {
@@ -99,6 +128,9 @@ export async function GET(req: NextRequest) {
                     orderBy: { step_number: 'asc' }
                 },
                 comments: {
+                    where: {
+                        parent_comment_id: null // Only get top-level comments for feed
+                    },
                     include: {
                         user: {
                             select: {
@@ -107,6 +139,32 @@ export async function GET(req: NextRequest) {
                                 fullname: true,
                                 profile_image: true,
                             }
+                        },
+                        likes: {
+                            select: {
+                                user_id: true
+                            }
+                        },
+                        replies: {
+                            include: {
+                                user: {
+                                    select: {
+                                        user_id: true,
+                                        username: true,
+                                        fullname: true,
+                                        profile_image: true,
+                                    }
+                                },
+                                likes: {
+                                    select: {
+                                        user_id: true
+                                    }
+                                }
+                            },
+                            orderBy: {
+                                created_at: 'asc'
+                            },
+                            take: 2 // Limit replies shown in feed
                         }
                     },
                     orderBy: {

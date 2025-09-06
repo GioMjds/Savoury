@@ -44,6 +44,9 @@ export async function GET(
                             }
                         },
                         comments: {
+                            where: {
+                                parent_comment_id: null
+                            },
                             include: {
                                 user: {
                                     select: {
@@ -51,6 +54,46 @@ export async function GET(
                                         fullname: true,
                                         username: true,
                                         profile_image: true,
+                                    }
+                                },
+                                likes: userId ? {
+                                    where: { user_id: userId },
+                                    select: {
+                                        user_id: true,
+                                        comment_like_id: true
+                                    }
+                                } : false,
+                                replies: {
+                                    include: {
+                                        user: {
+                                            select: {
+                                                user_id: true,
+                                                fullname: true,
+                                                username: true,
+                                                profile_image: true,
+                                            }
+                                        },
+                                        likes: userId ? {
+                                            where: { user_id: userId },
+                                            select: {
+                                                user_id: true,
+                                                comment_like_id: true
+                                            }
+                                        } : false,
+                                        _count: {
+                                            select: {
+                                                likes: true
+                                            }
+                                        }
+                                    },
+                                    orderBy: {
+                                        created_at: 'asc'
+                                    }
+                                },
+                                _count: {
+                                    select: {
+                                        likes: true,
+                                        replies: true
                                     }
                                 }
                             },
@@ -66,7 +109,13 @@ export async function GET(
                             select: {
                                 user_id: true
                             }
-                        } : false
+                        } : false,
+                        _count: {
+                            select: {
+                                userLikes: true,
+                                comments: true,
+                            }
+                        }
                     }
                 });
 
@@ -78,13 +127,14 @@ export async function GET(
 
                 const recipeWithFlags = {
                     ...recipe,
+                    likes: recipe._count.userLikes,
                     isLiked: userId ? recipe.userLikes.length > 0 : false,
                     isBookmarked: userId ? recipe.bookmarks.length > 0 : false
                 };
 
                 return NextResponse.json({
                     success: true,
-                    data: recipeWithFlags
+                    recipe: recipeWithFlags
                 }, { status: 200 });
             }
             default: {
@@ -140,13 +190,6 @@ export async function POST(
                     }, { status: 404 });
                 }
 
-                // Don't allow users to like their own recipes
-                if (recipe.user_id === userId) {
-                    return NextResponse.json({
-                        error: "You cannot like your own recipe"
-                    }, { status: 400 });
-                }
-
                 const existingLike = await prisma.userLike.findUnique({
                     where: {
                         user_id_recipe_id: {
@@ -162,7 +205,6 @@ export async function POST(
                     }, { status: 409 })
                 }
 
-                // Get current user info for notification
                 const currentUser = await prisma.users.findUnique({
                     where: { user_id: userId },
                     select: {
@@ -368,7 +410,148 @@ export async function POST(
                 }, { status: 201 });
             }
             case "reply_to_comment": {
+                const { comment, parentCommentId } = await req.json();
 
+                if (!comment) {
+                    return NextResponse.json({
+                        error: 'Comment text is required.'
+                    }, { status: 400 });
+                }
+
+                if (!parentCommentId) {
+                    return NextResponse.json({
+                        error: 'Parent comment ID is required for replies.'
+                    }, { status: 400 });
+                }
+
+                const parentComment = await prisma.comment.findUnique({
+                    where: { comment_id: Number(parentCommentId) },
+                    include: {
+                        user: {
+                            select: {
+                                user_id: true,
+                                fullname: true
+                            }
+                        }
+                    }
+                });
+
+                if (!parentComment) {
+                    return NextResponse.json({
+                        error: "Parent comment not found."
+                    }, { status: 404 });
+                }
+
+                const recipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                    select: {
+                        recipe_id: true,
+                        user_id: true,
+                        title: true,
+                        image_url: true,
+                    }
+                });
+
+                if (!recipe) {
+                    return NextResponse.json({
+                        error: "Recipe not found."
+                    }, { status: 404 });
+                }
+
+                const currentUser = await prisma.users.findUnique({
+                    where: { user_id: Number(userId) },
+                    select: {
+                        user_id: true,
+                        username: true,
+                        fullname: true,
+                        profile_image: true,
+                    }
+                });
+
+                if (!currentUser) {
+                    return NextResponse.json({
+                        error: "User not found."
+                    }, { status: 404 });
+                }
+
+                const result = await prisma.$transaction(async (tx) => {
+                    const newReply = await tx.comment.create({
+                        data: {
+                            user_id: userId,
+                            recipe_id: Number(recipeId),
+                            parent_comment_id: Number(parentCommentId),
+                            comment_text: comment
+                        },
+                        include: {
+                            user: {
+                                select: {
+                                    user_id: true,
+                                    username: true,
+                                    fullname: true,
+                                    profile_image: true,
+                                }
+                            }
+                        }
+                    });
+
+                    let notification = null;
+                    if (parentComment.user_id !== userId) {
+                        notification = await tx.notification.create({
+                            data: {
+                                recipient_id: parentComment.user_id,
+                                sender_id: userId,
+                                recipe_id: Number(recipeId),
+                                type: 'comment',
+                                message: `${currentUser.fullname} replied to your comment on "${recipe.title}"`
+                            },
+                            include: {
+                                sender: {
+                                    select: {
+                                        user_id: true,
+                                        username: true,
+                                        fullname: true,
+                                        profile_image: true,
+                                    }
+                                },
+                                recipe: {
+                                    select: {
+                                        recipe_id: true,
+                                        title: true,
+                                        image_url: true,
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    return {
+                        reply: newReply,
+                        notification
+                    };
+                });
+
+                return NextResponse.json({
+                    success: true,
+                    message: "Reply posted successfully",
+                    data: {
+                        comment: {
+                            comment_id: result.reply.comment_id,
+                            comment_text: result.reply.comment_text,
+                            created_at: result.reply.created_at,
+                            parent_comment_id: result.reply.parent_comment_id,
+                            user: result.reply.user,
+                            recipe_id: Number(recipeId)
+                        },
+                        notification: result.notification ? {
+                            id: result.notification.notification_id,
+                            type: result.notification.type,
+                            message: result.notification.message,
+                            sender: result.notification.sender,
+                            recipe: result.notification.recipe,
+                            created_at: result.notification.created_at
+                        } : null
+                    }
+                }, { status: 201 });
             }
             default: {
                 return NextResponse.json({
@@ -448,10 +631,94 @@ export async function PUT(
                 }
             }
             case "edit_recipe_post": {
-                
-            }
-            case "edit_comment": {
 
+            }
+            case "like_comment": {
+                const commentId = searchParams.get("commentId");
+                
+                if (!commentId) {
+                    return NextResponse.json({
+                        error: "Comment ID is required"
+                    }, { status: 400 });
+                }
+
+                const comment = await prisma.comment.findUnique({
+                    where: { comment_id: Number(commentId) },
+                    include: {
+                        user: {
+                            select: {
+                                user_id: true,
+                                fullname: true
+                            }
+                        }
+                    }
+                });
+
+                if (!comment) {
+                    return NextResponse.json({
+                        error: "Comment not found"
+                    }, { status: 404 });
+                }
+
+                const existingLike = await prisma.commentLike.findUnique({
+                    where: {
+                        user_id_comment_id: {
+                            user_id: userId,
+                            comment_id: Number(commentId)
+                        }
+                    }
+                });
+
+                if (existingLike) {
+                    await prisma.$transaction(async (tx) => {
+                        await tx.commentLike.delete({
+                            where: {
+                                comment_like_id: existingLike.comment_like_id
+                            }
+                        });
+
+                        await tx.comment.update({
+                            where: { comment_id: Number(commentId) },
+                            data: {
+                                comment_likes: { decrement: 1 }
+                            }
+                        });
+                    });
+
+                    return NextResponse.json({
+                        success: true,
+                        message: "Comment unliked successfully",
+                        data: {
+                            isLiked: false,
+                            commentId: Number(commentId)
+                        }
+                    }, { status: 200 });
+                } else {
+                    await prisma.$transaction(async (tx) => {
+                        await tx.commentLike.create({
+                            data: {
+                                user_id: userId,
+                                comment_id: Number(commentId)
+                            }
+                        });
+
+                        await tx.comment.update({
+                            where: { comment_id: Number(commentId) },
+                            data: {
+                                comment_likes: { increment: 1 }
+                            }
+                        });
+                    });
+
+                    return NextResponse.json({
+                        success: true,
+                        message: "Comment liked successfully",
+                        data: {
+                            isLiked: true,
+                            commentId: Number(commentId)
+                        }
+                    }, { status: 200 });
+                }
             }
             default: {
                 return NextResponse.json({
@@ -486,7 +753,51 @@ export async function DELETE(
 
         switch (action) {
             case "delete_post": {
-                
+                const recipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                });
+
+                if (!recipe) {
+                    return NextResponse.json({
+                        error: "Recipe not found"
+                    }, { status: 404 });
+                }
+
+                if (recipe.user_id !== userId) {
+                    return NextResponse.json({
+                        error: "You can only delete your own recipes"
+                    }, { status: 403 });
+                }
+
+                await prisma.$transaction(async (tx) => {
+                    await tx.commentLike.deleteMany({
+                        where: {
+                            comment: {
+                                recipe_id: Number(recipeId)
+                            }
+                        }
+                    });
+
+                    await tx.comment.deleteMany({
+                        where: { recipe_id: Number(recipeId) }
+                    });
+
+                    await tx.userLike.deleteMany({
+                        where: { recipe_id: Number(recipeId) }
+                    });
+
+                    await tx.bookmark.deleteMany({
+                        where: { recipe_id: Number(recipeId) }
+                    });
+
+                    await tx.notification.deleteMany({
+                        where: { recipe_id: Number(recipeId) }
+                    });
+                });
+
+                return NextResponse.json({
+                    message: "Recipe and all associated data deleted successfully"
+                }, { status: 200 });
             }
             case "unlike_post": {
                 const recipe = await prisma.recipe.findUnique({
@@ -566,7 +877,48 @@ export async function DELETE(
                 }, { status: 200 });
             }
             case "delete_comment": {
+                const commentId = searchParams.get("commentId");
+                
+                if (!commentId) {
+                    return NextResponse.json({
+                        error: "Comment ID is required"
+                    }, { status: 400 });
+                }
 
+                const comment = await prisma.comment.findUnique({
+                    where: { comment_id: Number(commentId) },
+                    select: {
+                        comment_id: true,
+                        user_id: true,
+                        recipe_id: true
+                    }
+                });
+
+                if (!comment) {
+                    return NextResponse.json({
+                        error: "Comment not found"
+                    }, { status: 404 });
+                }
+
+                // Only allow users to delete their own comments
+                if (comment.user_id !== userId) {
+                    return NextResponse.json({
+                        error: "You can only delete your own comments"
+                    }, { status: 403 });
+                }
+
+                // Delete comment (this will cascade delete replies and likes due to schema)
+                await prisma.comment.delete({
+                    where: { comment_id: Number(commentId) }
+                });
+
+                return NextResponse.json({
+                    success: true,
+                    message: "Comment deleted successfully",
+                    data: {
+                        commentId: Number(commentId)
+                    }
+                }, { status: 200 });
             }
             default: {
                 return NextResponse.json({

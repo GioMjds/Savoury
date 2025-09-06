@@ -76,6 +76,21 @@ export interface FeedRecipeRating {
 export interface FeedRecipeComment {
     comment_id: number;
     comment_text: string;
+    comment_likes: number;
+    created_at: string;
+    parent_comment_id?: number;
+    user: {
+        user_id: number;
+        username: string;
+        fullname: string;
+        profile_image: string;
+    };
+    likes: Array<{ user_id: number }>;
+    replies?: FeedRecipeComment[];
+    _count?: {
+        likes: number;
+        replies: number;
+    };
 }
 
 export interface FeedRecipe {

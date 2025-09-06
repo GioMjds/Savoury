@@ -43,6 +43,7 @@ model Users {
     comments      		Comment[]
     bookmarks     		Bookmark[]
     userLikes           UserLike[]
+    commentLikes        CommentLike[]
 
     sentNotifications       Notification[]      @relation("NotificationSender")
     receivedNotifications   Notification[]      @relation("NotificationRecipient")
@@ -114,16 +115,41 @@ model Instruction {
 }
 
 model Comment {
-    comment_id   Int      @id @default(autoincrement())
-    user_id      Int
-    recipe_id    Int
-    comment_text String   @db.Text
-    created_at   DateTime @default(now())
-    user         Users    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-    recipe       Recipe   @relation(fields: [recipe_id], references: [recipe_id], onDelete: Cascade)
+    comment_id          Int             @id @default(autoincrement())
+    user_id             Int
+    recipe_id           Int
+    parent_comment_id   Int?
+    comment_text        String          @db.Text
+    comment_likes       Int             @default(0)
+    created_at          DateTime        @default(now())
+    
+    user                Users           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+    recipe              Recipe          @relation(fields: [recipe_id], references: [recipe_id], onDelete: Cascade)
+
+    parent_comment      Comment?        @relation("CommentReplies", fields: [parent_comment_id], references: [comment_id], onDelete: Cascade)
+    replies             Comment[]       @relation("CommentReplies")
+
+    likes               CommentLike[]
 
     @@index([recipe_id])
     @@index([user_id])
+    @@index([parent_comment_id])
+    @@index([created_at])
+}
+
+model CommentLike {
+    comment_like_id     Int             @id @default(autoincrement())
+    user_id             Int
+    comment_id          Int
+    created_at          DateTime        @default(now())
+    
+    // Relations
+    user                Users           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+    comment             Comment         @relation(fields: [comment_id], references: [comment_id], onDelete: Cascade)
+
+    @@unique([user_id, comment_id])
+    @@index([user_id])
+    @@index([comment_id])
 }
 
 model Bookmark {

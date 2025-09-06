@@ -22,6 +22,21 @@ interface RecipeInstruction {
 interface RecipeComment {
 	comment_id: number;
 	comment_text: string;
+	comment_likes: number;
+	created_at: string;
+	parent_comment_id?: number;
+	user: {
+		user_id: number;
+		username: string;
+		fullname: string;
+		profile_image: string;
+	};
+	likes?: Array<{ user_id: number; comment_like_id: number }>;
+	replies?: RecipeComment[];
+	_count?: {
+		likes: number;
+		replies: number;
+	};
 }
 
 export interface LikeApiResponse {
@@ -68,6 +83,26 @@ export interface PostBlockProps {
 	} | null;
 }
 
+export interface Comment {
+	comment_id: number;
+	comment_text: string;
+	comment_likes: number;
+	created_at: string;
+	parent_comment_id?: number;
+	user: {
+		user_id: number;
+		username: string;
+		fullname: string;
+		profile_image: string;
+	};
+	likes?: Array<{ user_id: number; comment_like_id?: number }>;
+	replies?: Comment[];
+	_count?: {
+		likes: number;
+		replies: number;
+	};
+}
+
 export interface CommentResponse {
 	success: boolean;
 	message: string;
@@ -103,3 +138,32 @@ export interface CommentResponse {
 		} | null;
 	};
 }
+
+export interface RecipePostProps {
+	recipeId: number;
+	currentUserId: number | null;
+}
+
+export interface RecipeApiResponse {
+	success: boolean;
+	recipe: Recipe;
+}
+
+export interface User {
+	user_id: number;
+	username: string;
+	fullname: string;
+	profile_image: string;
+}
+
+export interface CommentLike {
+	user_id: number;
+	comment_like_id: number;
+}
+
+export interface CommentCount {
+	likes: number;
+	replies: number;
+}
+
+export type TabType = 'ingredients' | 'instructions';

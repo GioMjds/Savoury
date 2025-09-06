@@ -24,6 +24,17 @@ class RecipeService {
         });
     }
 
+    async replyToComment(recipeId: number, data: { comment: string; parentCommentId: number }): Promise<CommentResponse> {
+        return httpClient.post(`/recipe/${recipeId}?action=reply_to_comment`, {
+            comment: data.comment,
+            parentCommentId: data.parentCommentId
+        });
+    }
+
+    async likeComment(recipeId: number, commentId: number) {
+        return httpClient.put(`/recipe/${recipeId}?action=like_comment&commentId=${commentId}`);
+    }
+
     async editComment(recipeId: number, commentId: number, data: any) {
         return httpClient.put(`/recipe/${recipeId}?action=edit_comment&commentId=${commentId}`, data);
     }

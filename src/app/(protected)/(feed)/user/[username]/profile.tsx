@@ -336,12 +336,10 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                     variants={staggerContainer}
                                 >
                                     {userProfile.recipes.map((recipe) => (
-                                        <motion.div
+                                        <Link
+                                            href={`/recipe/${recipe.recipe_id}`}
                                             key={recipe.recipe_id}
-                                            className="group border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-white"
-                                            variants={scaleIn}
-                                            whileHover={{ y: -4, scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
+                                            className="group border border-border rounded-lg overflow-hidden cursor-pointer bg-white"
                                         >
                                             <div className="relative h-48 bg-muted overflow-hidden">
                                                 {recipe.image_url ? (
@@ -354,9 +352,13 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                                     />
                                                 ) : (
                                                     // Custom image fallback if no image has rendered
-                                                    <div className="flex items-center justify-center h-full text-6xl bg-gradient-to-br from-muted to-primary-lighter">
-                                                        🍽️
-                                                    </div>
+                                                    <Image 
+                                                        src='/savoury-logo.png'
+                                                        alt='Savoury Logo'
+                                                        fill
+                                                        priority
+                                                        className="object-contain p-10 opacity-20"
+                                                    />
                                                 )}
                                                 {recipe.category && (
                                                     <div className="absolute top-3 left-3 bg-primary text-white px-2 py-1 rounded-full text-xs font-medium capitalize">
@@ -413,7 +415,7 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                                     </span>
                                                 </div>
                                             </div>
-                                        </motion.div>
+                                        </Link>
                                     ))}
                                 </motion.div>
                             )}

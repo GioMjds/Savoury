@@ -11,7 +11,7 @@ class UserService {
         return await httpClient.get(`/profile/${username}`);
     }
 
-    async fetchNotifications(params?: NotificationsParams) {
+    async fetchNotifications(params: NotificationsParams) {
         const searchParams = new URLSearchParams();
 
         if (params?.page) searchParams.append('page', params.page.toString());
