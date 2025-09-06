@@ -1,4 +1,5 @@
 import { httpClient } from "@/configs/axios";
+import { CommentResponse } from "@/types/RecipeResponse";
 
 class RecipeService {
     async getRecipe(recipeId: number) {
@@ -15,6 +16,12 @@ class RecipeService {
 
     async likeRecipePost(recipeId: number) {
         return httpClient.post(`/recipe/${recipeId}?action=like_post`);
+    }
+
+    async postComment(recipeId: number, data: any): Promise<CommentResponse> {
+        return httpClient.post(`/recipe/${recipeId}?action=new_comment`, {
+            comment: data.comment
+        });
     }
 
     async editComment(recipeId: number, commentId: number, data: any) {

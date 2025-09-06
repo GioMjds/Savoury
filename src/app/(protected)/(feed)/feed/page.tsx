@@ -21,7 +21,7 @@ export default async function Feed() {
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <FeedPage currentUserId={currentUserId} />
+            <FeedPage currentUserId={currentUserId} currentUser={currentUser} />
         </HydrationBoundary>
     );
 };

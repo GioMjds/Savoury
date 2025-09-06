@@ -14,9 +14,15 @@ const fadeIn = {
 
 interface FeedPageProps {
 	currentUserId: number | null;
+	currentUser: {
+		user_id: number;
+		profile_image: string;
+		fullname: string;
+		username: string;
+	} | null;
 }
 
-export default function FeedPage({ currentUserId }: FeedPageProps) {
+export default function FeedPage({ currentUserId, currentUser }: FeedPageProps) {
 	const { data: feedData } = useQuery<FeedResponse>({
 		queryKey: ['feed'],
 		queryFn: feed.fetchFeed,
@@ -51,8 +57,7 @@ export default function FeedPage({ currentUserId }: FeedPageProps) {
 										amazing recipes here!
 									</p>
 									<div className="bg-primary-light/20 text-primary p-3 rounded-lg text-sm">
-										💡 Tip: Check out our trending recipes
-										in the explore section
+										💡 Tip: Check out our trending recipes in the explore section
 									</div>
 								</div>
 							</motion.div>
@@ -61,10 +66,10 @@ export default function FeedPage({ currentUserId }: FeedPageProps) {
 								{recipes.map((recipe: FeedRecipe) => (
 									<div
 										key={recipe.recipe_id}
-										className="w-4xl"
+										className="w-5xl"
 									>
 										<div className="border border-border rounded-xl overflow-hidden hover:shadow-md transition-all duration-300">
-											<PostBlock recipe={recipe} currentUserId={currentUserId} />
+											<PostBlock recipe={recipe} currentUserId={currentUserId} currentUser={currentUser} />
 										</div>
 									</div>
 								))}
@@ -78,7 +83,7 @@ export default function FeedPage({ currentUserId }: FeedPageProps) {
 							{/* Footer Links */}
 							<div className="text-sm text-center text-muted space-y-2">
 								<p className="pt-2">
-									© {new Date().getFullYear()} Savoury | All rights reserved.
+									&copy; {new Date().getFullYear()} Savoury | All rights reserved.
 								</p>
 							</div>
 						</div>

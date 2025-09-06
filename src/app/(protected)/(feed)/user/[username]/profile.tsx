@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -8,7 +9,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faClock,
     faUsers,
-    faStar,
     faHeart,
     faComment,
     faBookmark,
@@ -17,11 +17,10 @@ import {
     IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
 import { user as userService } from '@/services/User';
-import { formatDate, formatGender, formatTime } from '@/utils/formaters';
+import { formatCategory, formatDate, formatGender, formatTime } from '@/utils/formaters';
 import { getSocialLinkInfo } from '@/utils/socialLinks';
 import { UserProfileResponse } from '@/types/User';
 import EditProfileModal from '@/components/EditProfileModal';
-import Link from 'next/link';
 
 interface ProfileProps {
     username: string;
@@ -327,7 +326,7 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                         {userProfile.username} hasn't shared any recipes yet. 
                                         Check back later for delicious creations!
                                     </p>
-                                    <Link href={`/new`} className='inline-block mt-4 px-4 py-2 bg-primary text-white rounded-md'>
+                                    <Link href="/new" className='inline-block mt-4 px-4 py-2 bg-primary text-white rounded-md'>
                                         Create Recipe
                                     </Link>
                                 </div>
@@ -350,16 +349,18 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                                         src={recipe.image_url}
                                                         alt={recipe.title}
                                                         fill
+                                                        loading='lazy'
                                                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                                                     />
                                                 ) : (
+                                                    // Custom image fallback if no image has rendered
                                                     <div className="flex items-center justify-center h-full text-6xl bg-gradient-to-br from-muted to-primary-lighter">
                                                         🍽️
                                                     </div>
                                                 )}
                                                 {recipe.category && (
                                                     <div className="absolute top-3 left-3 bg-primary text-white px-2 py-1 rounded-full text-xs font-medium capitalize">
-                                                        {recipe.category.replace('_', ' ')}
+                                                        {formatCategory(recipe.category)}
                                                     </div>
                                                 )}
                                             </div>
@@ -390,10 +391,6 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <FontAwesomeIcon icon={faStar} className="w-3 h-3 text-yellow-400" />
-                                                        <span>{Number(recipe.average_rating).toFixed(1)}</span>
-                                                    </div>
                                                 </div>
 
                                                 <div className="flex items-center justify-between pt-3 border-t border-border">
@@ -404,11 +401,11 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                                         </div>
                                                         <div className="flex items-center gap-1">
                                                             <FontAwesomeIcon icon={faComment} className="w-3 h-3" />
-                                                            <span>{recipe._count?.comments || 0}</span>
+                                                            <span>{recipe._count?.comments}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1">
                                                             <FontAwesomeIcon icon={faBookmark} className="w-3 h-3" />
-                                                            <span>{recipe._count?.bookmarks || 0}</span>
+                                                            <span>{recipe._count?.bookmarks}</span>
                                                         </div>
                                                     </div>
                                                     <span className="text-xs text-muted">
@@ -426,11 +423,13 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
             </div>
 
             {/* Edit Profile Modal */}
-            <EditProfileModal
-                isOpen={isEditModalOpen}
-                onClose={() => setIsEditModalOpen(false)}
-                userProfile={userProfile}
-            />
+            {isEditModalOpen && (
+                <EditProfileModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    userProfile={userProfile}
+                />
+            )}
         </motion.div>
     );
 }

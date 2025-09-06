@@ -60,4 +60,46 @@ export type UnifiedRecipe = Recipe | import("@/types/FeedResponse").FeedRecipe;
 export interface PostBlockProps {
 	recipe: UnifiedRecipe;
 	currentUserId: number | null;
+	currentUser: {
+		user_id: number;
+		profile_image: string;
+		fullname: string;
+		username: string;
+	} | null;
+}
+
+export interface CommentResponse {
+	success: boolean;
+	message: string;
+	data: {
+		comment: {
+			comment_id: number;
+			comment_text: string;
+			created_at: string;
+			user: {
+				user_id: number;
+				username: string;
+				fullname: string;
+				profile_image: string;
+			};
+			recipe_id: number;
+		};
+		notification?: {
+			id: number;
+			type: string;
+			message: string;
+			sender: {
+				user_id: number;
+				username: string;
+				fullname: string;
+				profile_image: string;
+			};
+			recipe: {
+				recipe_id: number;
+				title: string;
+				image_url: string;
+			};
+			created_at: string;
+		} | null;
+	};
 }

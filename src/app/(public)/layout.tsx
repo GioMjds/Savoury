@@ -11,7 +11,10 @@ const kumbhSans = Kumbh_Sans({
 });
 
 export const metadata: Metadata = {
-	title: 'Savoury - Unlock your Flavor',
+	title: {
+		template: "%s | Savoury",
+		default: "Savoury - Unlock Your Recipe"
+	},
 	description: 'Your Modern Food Recipe Sharing Platform',
 };
 

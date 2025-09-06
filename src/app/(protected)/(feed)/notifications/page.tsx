@@ -1,7 +1,8 @@
+import { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { user } from "@/services/User";
 import NotifPage from "./notifications";
-import { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 export const metadata: Metadata = {
     title: "Notifications",
@@ -11,10 +12,14 @@ export const metadata: Metadata = {
 export default async function Notifications() {
     const queryClient = new QueryClient();
 
-    await queryClient.prefetchQuery({
-        queryKey: ['notifications'],
-        queryFn: user.fetchNotifications,
-    });
+    try {
+        await queryClient.prefetchQuery({
+            queryKey: ['notifications', 1],
+            queryFn: () => user.fetchNotifications({ page: 1, limit: 10 }),
+        });
+    } catch (error) {
+        notFound();
+    }
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>

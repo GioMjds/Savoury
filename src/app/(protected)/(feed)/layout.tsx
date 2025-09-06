@@ -3,11 +3,14 @@ import type { Metadata } from 'next';
 import Navbar from '@/layouts/Navbar';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { SocketManager, SocketProvider } from '@/contexts/SocketContext';
+import { SocketProvider } from '@/contexts/SocketContext';
 import { getCurrentUser, getSession } from '@/lib/auth';
 
 export const metadata: Metadata = {
-	title: 'Savoury - Unlock your Flavor',
+	title: {
+		template: '%s | Savoury',
+		default: 'Savoury - Unlock your Flavor',
+	},
 	description: 'Your Modern Food Recipe Sharing Platform',
 };
 

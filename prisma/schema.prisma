@@ -141,9 +141,9 @@ model Bookmark {
 
 model Notification {
     notification_id     Int                 @id @default(autoincrement())
-    recipient_id        Int                 // User receiving the notification
-    sender_id           Int                 // User who triggered the notification
-    recipe_id           Int?                // Optional: for recipe-related notifications
+    recipient_id        Int
+    sender_id           Int 
+    recipe_id           Int?
     type                NotificationType
     message             String              @db.Text
     is_read             Boolean             @default(false)

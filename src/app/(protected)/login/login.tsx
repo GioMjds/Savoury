@@ -214,11 +214,7 @@ export default function LoginPage() {
 							whileHover={{ scale: 1.03 }}
 							whileTap={{ scale: 0.97 }}
 						>
-							{loginMutation.isPending ? (
-								'Logging in...'
-							) : (
-								'Login'
-							)}
+							{loginMutation.isPending ? 'Logging in...' :  'Login'}
 						</motion.button>
 					</div>
 

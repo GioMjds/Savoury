@@ -100,9 +100,6 @@ export async function GET(
     }
 }
 
-// Action(s) needed:
-// 1. For creating a new comment
-// 2. Liking a specific post
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ recipeId: string }> }
@@ -125,10 +122,15 @@ export async function POST(
             case "like_post": {
                 const recipe = await prisma.recipe.findUnique({
                     where: { recipe_id: Number(recipeId) },
-                    select: {
-                        recipe_id: true,
-                        user: true,
-                        likes: true,
+                    include: {
+                        user: {
+                            select: {
+                                user_id: true,
+                                username: true,
+                                fullname: true,
+                                profile_image: true,
+                            }
+                        }
                     }
                 });
 
@@ -136,6 +138,13 @@ export async function POST(
                     return NextResponse.json({
                         error: "Recipe not found"
                     }, { status: 404 });
+                }
+
+                // Don't allow users to like their own recipes
+                if (recipe.user_id === userId) {
+                    return NextResponse.json({
+                        error: "You cannot like your own recipe"
+                    }, { status: 400 });
                 }
 
                 const existingLike = await prisma.userLike.findUnique({
@@ -153,7 +162,26 @@ export async function POST(
                     }, { status: 409 })
                 }
 
-                await prisma.$transaction(async (tx) => {
+                // Get current user info for notification
+                const currentUser = await prisma.users.findUnique({
+                    where: { user_id: userId },
+                    select: {
+                        user_id: true,
+                        username: true,
+                        fullname: true,
+                        profile_image: true,
+                    }
+                });
+
+                if (!currentUser) {
+                    return NextResponse.json({
+                        error: "User not found"
+                    }, { status: 404 });
+                }
+
+                // Create like and notification in transaction
+                const result = await prisma.$transaction(async (tx) => {
+                    // Create the like
                     await tx.userLike.create({
                         data: {
                             user_id: userId,
@@ -161,17 +189,46 @@ export async function POST(
                         }
                     });
 
-                    await tx.recipe.update({
+                    // Update recipe likes count
+                    const updatedRecipe = await tx.recipe.update({
                         where: { recipe_id: Number(recipeId) },
                         data: {
                             likes: { increment: 1 }
                         }
                     });
-                });
 
-                const updatedRecipe = await prisma.recipe.findUnique({
-                    where: { recipe_id: Number(recipeId) },
-                    select: { likes: true }
+                    // Create notification for recipe owner (only if it's not the same user)
+                    const notification = await tx.notification.create({
+                        data: {
+                            recipient_id: recipe.user_id,
+                            sender_id: userId,
+                            recipe_id: Number(recipeId),
+                            type: 'like',
+                            message: `${currentUser.fullname} liked your recipe "${recipe.title}"`
+                        },
+                        include: {
+                            sender: {
+                                select: {
+                                    user_id: true,
+                                    username: true,
+                                    fullname: true,
+                                    profile_image: true,
+                                }
+                            },
+                            recipe: {
+                                select: {
+                                    recipe_id: true,
+                                    title: true,
+                                    image_url: true,
+                                }
+                            }
+                        }
+                    });
+
+                    return {
+                        likes: updatedRecipe.likes,
+                        notification
+                    };
                 });
 
                 return NextResponse.json({
@@ -179,13 +236,136 @@ export async function POST(
                     message: "Recipe liked successfully",
                     data: {
                         isLiked: true,
-                        likesCount: updatedRecipe?.likes || 0,
-                        recipeId: Number(recipeId)
+                        likesCount: result.likes,
+                        recipeId: Number(recipeId),
+                        notification: {
+                            id: result.notification.notification_id,
+                            type: result.notification.type,
+                            message: result.notification.message,
+                            sender: result.notification.sender,
+                            recipe: result.notification.recipe,
+                            created_at: result.notification.created_at
+                        }
                     }
                 }, { status: 200 });
             }
             case "new_comment": {
-                
+                const { comment } = await req.json();
+
+                if (!comment) {
+                    return NextResponse.json({
+                        error: 'Comment text is required.'
+                    }, { status: 400 });
+                }
+
+                const recipe = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) },
+                    select: {
+                        recipe_id: true,
+                        user_id: true,
+                        title: true,
+                        image_url: true,
+                    }
+                });
+
+                if (!recipe) {
+                    return NextResponse.json({
+                        error: "Recipe not found."
+                    }, { status: 404 });
+                }
+
+                const currentUser = await prisma.users.findUnique({
+                    where: { user_id: Number(userId) },
+                    select: {
+                        user_id: true,
+                        username: true,
+                        fullname: true,
+                        profile_image: true,
+                    }
+                });
+
+                if (!currentUser) {
+                    return NextResponse.json({
+                        error: "User not found."
+                    }, { status: 404 });
+                }
+
+                const result = await prisma.$transaction(async (tx) => {
+                    const newComment = await tx.comment.create({
+                        data: {
+                            user_id: userId,
+                            recipe_id: Number(recipeId),
+                            comment_text: comment
+                        },
+                        include: {
+                            user: {
+                                select: {
+                                    user_id: true,
+                                    username: true,
+                                    fullname: true,
+                                    profile_image: true,
+                                }
+                            }
+                        }
+                    });
+
+                    let notification = null;
+                    if (recipe.user_id !== userId) {
+                        notification = await tx.notification.create({
+                            data: {
+                                recipient_id: recipe.user_id,
+                                sender_id: userId,
+                                recipe_id: Number(recipeId),
+                                type: 'comment',
+                                message: `${currentUser.fullname} commented on your recipe "${recipe.title}"`
+                            },
+                            include: {
+                                sender: {
+                                    select: {
+                                        user_id: true,
+                                        username: true,
+                                        fullname: true,
+                                        profile_image: true,
+                                    }
+                                },
+                                recipe: {
+                                    select: {
+                                        recipe_id: true,
+                                        title: true,
+                                        image_url: true,
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    return {
+                        comment: newComment,
+                        notification
+                    };
+                });
+
+                return NextResponse.json({
+                    success: true,
+                    message: "Comment posted successfully",
+                    data: {
+                        comment: {
+                            comment_id: result.comment.comment_id,
+                            comment_text: result.comment.comment_text,
+                            created_at: result.comment.created_at,
+                            user: result.comment.user,
+                            recipe_id: Number(recipeId)
+                        },
+                        notification: result.notification ? {
+                            id: result.notification.notification_id,
+                            type: result.notification.type,
+                            message: result.notification.message,
+                            sender: result.notification.sender,
+                            recipe: result.notification.recipe,
+                            created_at: result.notification.created_at
+                        } : null
+                    }
+                }, { status: 201 });
             }
             case "reply_to_comment": {
 
@@ -203,8 +383,6 @@ export async function POST(
     }
 }
 
-// Action(s) needed:
-// 1. Editing a specific recipe post
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ recipeId: string }> }
@@ -288,10 +466,6 @@ export async function PUT(
     }
 }
 
-// Actions needed:
-// 1. Deleting a recipe post
-// 2. Unliking a recipe post
-// 3. Deleting a comment
 export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ recipeId: string }> }
@@ -345,8 +519,9 @@ export async function DELETE(
                     }, { status: 409 });
                 }
 
-                // Remove the like and update recipe likes count
-                await prisma.$transaction(async (tx) => {
+                // Remove like and related notification in transaction
+                const result = await prisma.$transaction(async (tx) => {
+                    // Remove the like
                     await tx.userLike.delete({
                         where: {
                             user_id_recipe_id: {
@@ -356,19 +531,27 @@ export async function DELETE(
                         }
                     });
 
-                    await tx.recipe.update({
+                    // Update recipe likes count
+                    const updatedRecipe = await tx.recipe.update({
                         where: { recipe_id: Number(recipeId) },
                         data: {
-                            likes: {
-                                decrement: 1
-                            }
+                            likes: { decrement: 1 }
                         }
                     });
-                });
 
-                const updatedRecipe = await prisma.recipe.findUnique({
-                    where: { recipe_id: Number(recipeId) },
-                    select: { likes: true }
+                    // Remove the like notification
+                    const deletedNotifications = await tx.notification.deleteMany({
+                        where: {
+                            sender_id: userId,
+                            recipe_id: Number(recipeId),
+                            type: 'like'
+                        }
+                    });
+
+                    return {
+                        likes: updatedRecipe.likes,
+                        deletedCount: deletedNotifications.count
+                    };
                 });
 
                 return NextResponse.json({
@@ -376,8 +559,9 @@ export async function DELETE(
                     message: "Recipe unliked successfully",
                     data: {
                         isLiked: false,
-                        likesCount: updatedRecipe?.likes || 0,
-                        recipeId: Number(recipeId)
+                        likesCount: result.likes,
+                        recipeId: Number(recipeId),
+                        removedNotifications: result.deletedCount
                     }
                 }, { status: 200 });
             }

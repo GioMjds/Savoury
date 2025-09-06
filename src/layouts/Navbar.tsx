@@ -4,15 +4,18 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import { auth } from '@/services/Auth';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { navigationItems } from '@/constants/homepage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell, faPlusCircle, faSignOutAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons';
+import { faSignOutAlt, faUserCircle, faBell } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from '@/components/SearchBar';
 import Dropdown from '@/components/Dropdown';
 import { authenticatedNavbarItems } from '@/constants/navbar';
+import { useSocket } from '@/contexts/SocketContext';
+import { user } from '@/services/User';
+import { toast } from 'react-toastify';
 
 interface NavbarProps {
     userDetails?: {
@@ -24,13 +27,132 @@ interface NavbarProps {
     };
 }
 
+interface Notification {
+    notification_id: number;
+    type: string;
+    message: string;
+    is_read: boolean;
+    created_at: string;
+    recipient_id?: number; // Add recipient_id to track who should receive this notification
+    sender: {
+        user_id: number;
+        fullname: string;
+        username: string;
+        profile_image: string;
+    };
+    recipe?: {
+        recipe_id: number;
+        title: string;
+        image_url: string;
+    };
+}
+
 export default function Navbar({ userDetails }: NavbarProps) {
-	const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+    const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
     const [showProfileDropdown, setShowProfileDropdown] = useState<boolean>(false);
+    const [unreadCount, setUnreadCount] = useState<number>(0);
 
     const profileRef = useRef<HTMLDivElement | null>(null);
-
+    // const { socket, isConnected } = useSocket();
     const router = useRouter();
+    const queryClient = useQueryClient();
+
+    const { data: notificationsData } = useQuery({
+        queryKey: ['notifications', userDetails?.id],
+        queryFn: () => user.fetchNotifications({ page: 1, limit: 1 }),
+        enabled: !!userDetails?.id,
+        refetchOnWindowFocus: false,
+    });
+
+    // Initialize unread count from API
+    useEffect(() => {
+        if (notificationsData?.unreadCount !== undefined) {
+            setUnreadCount(notificationsData.unreadCount);
+        }
+    }, [notificationsData]);
+
+    // Listen for socket-based notification events
+    useEffect(() => {
+        if (!userDetails?.id) return;
+
+        const currentUserId = parseInt(userDetails.id);
+
+        const handleNewNotification = (notification: Notification) => {
+            console.log('🔔 New notification received in Navbar:', notification);
+            if (notification.recipient_id && notification.recipient_id === currentUserId) {
+                // Update unread count
+                setUnreadCount(prev => prev + 1);
+                
+                // Show toast notification
+                toast.info(
+                    <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                            <Image
+                                src={notification.sender.profile_image || '/Default_pfp.jpg'}
+                                alt={notification.sender.fullname}
+                                width={32}
+                                height={32}
+                                className="object-cover"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-medium text-sm">{notification.sender.fullname}</p>
+                            <p className="text-xs text-gray-600">
+                                {notification.message.replace(notification.sender.fullname, '')}
+                            </p>
+                        </div>
+                    </div>,
+                    {
+                        position: "top-right",
+                        autoClose: 4000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                    }
+                );
+
+                // Invalidate notifications query to refresh data
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            } else {
+                console.log('🚫 Ignoring notification not meant for current user');
+            }
+        };
+
+        const handleNotificationRemoved = (data: { type: string; recipeId: number; senderId: number; recipientId?: number }) => {
+            console.log('🗑️ Notification removed in Navbar:', data);
+            
+            // Only process notification removals that affect the current user
+            if (!data.recipientId || data.recipientId === currentUserId) {
+                setUnreadCount(prev => Math.max(0, prev - 1));
+                
+                // Invalidate notifications query to refresh data
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            }
+        };
+
+        // Listen to socket events
+        // socket.on('new-notification', handleNewNotification);
+        // socket.on('notification-removed', handleNotificationRemoved);
+
+        // Listen to custom window events (fallback)
+        const handleCustomNewNotification = (event: CustomEvent) => {
+            handleNewNotification(event.detail);
+        };
+
+        const handleCustomNotificationRemoved = (event: CustomEvent) => {
+            handleNotificationRemoved(event.detail);
+        };
+
+        window.addEventListener('new-notification', handleCustomNewNotification as EventListener);
+        window.addEventListener('notification-removed', handleCustomNotificationRemoved as EventListener);
+
+        return () => {
+            // socket.off('new-notification', handleNewNotification);
+            // socket.off('notification-removed', handleNotificationRemoved);
+            window.removeEventListener('new-notification', handleCustomNewNotification as EventListener);
+            window.removeEventListener('notification-removed', handleCustomNotificationRemoved as EventListener);
+        };
+    }, [userDetails?.id, queryClient]);
 
     const logoutMutation = useMutation({
         mutationFn: () => auth.logout(''),
@@ -49,6 +171,11 @@ export default function Navbar({ userDetails }: NavbarProps) {
         router.push(`/search?q=${encodeURIComponent(query)}`);
     };
 
+    const handleNotificationClick = () => {
+        // Don't reset count here - let the notifications page handle it
+        // The count will be updated when notifications are marked as read
+    };
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -60,7 +187,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-	return (
+    return (
         <motion.header 
             className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-border shadow-sm"
             initial={{ y: -100 }}
@@ -98,10 +225,24 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                 >
                                     <Link
                                         href={href}
-                                        className="relative flex justify-center items-center p-2 text-foreground group-hover:text-primary-hover transition-colors group"
+                                        onClick={href === '/notifications' ? handleNotificationClick : undefined}
+                                        className="relative flex flex-col justify-center items-center p-2 text-foreground group-hover:text-primary-hover transition-colors group"
                                         aria-label={ariaLabel}
                                     >
-                                        <FontAwesomeIcon icon={icon} size="xl" className="mb-1" />
+                                        <div className="relative">
+                                            <FontAwesomeIcon icon={icon} size="xl" className="mb-1" />
+                                            {href === '/notifications' && unreadCount > 0 && (
+                                                <motion.div
+                                                    key={unreadCount} // Force re-animation when count changes
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    exit={{ scale: 0 }}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse"
+                                                >
+                                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                                </motion.div>
+                                            )}
+                                        </div>
                                         <span className='block text-xs font-medium'>
                                             {label}
                                         </span>
@@ -186,14 +327,13 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             label: logoutMutation.isPending ? 'Logging out...' : 'Log Out',
                                             icon: <FontAwesomeIcon icon={faSignOutAlt} />,
                                             onClick: logoutMutation.mutate,
-                                            variant: 'danger' as const,
+                                            variant: 'danger',
                                             disabled: logoutMutation.isPending,
                                         },
                                     ]}
                                 />
                             </div>
                         ) : (
-                            // Login/Register buttons for non-authenticated users
                             <>
                                 <Link 
                                     href="/login" 
@@ -260,7 +400,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     <ul className="flex flex-col space-y-4 py-4">
                                         <li>
                                             <Link 
-                                                href="/recipes/new"
+                                                href="/new"
                                                 className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors font-medium py-2"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
@@ -272,7 +412,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                         </li>
                                         <li>
                                             <Link 
-                                                href={`/profile/${userDetails.id}`}
+                                                href={`/user/${userDetails.username}`}
                                                 className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors font-medium py-2"
                                                 onClick={() => setIsMenuOpen(false)}
                                             >
@@ -298,13 +438,26 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                         <li>
                                             <Link 
                                                 href="/notifications" 
-                                                className="flex items-center space-x-3 text-foreground hover:text-primary transition-colors font-medium py-2"
-                                                onClick={() => setIsMenuOpen(false)}
+                                                className="flex items-center justify-between text-foreground hover:text-primary transition-colors font-medium py-2"
+                                                onClick={() => {
+                                                    setIsMenuOpen(false);
+                                                    handleNotificationClick();
+                                                }}
                                             >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                                </svg>
-                                                <span>Notifications</span>
+                                                <div className="flex items-center space-x-3">
+                                                    <FontAwesomeIcon icon={faBell} className="w-5 h-5" />
+                                                    <span>Notifications</span>
+                                                </div>
+                                                {unreadCount > 0 && (
+                                                    <motion.div
+                                                        key={unreadCount}
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                        className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 animate-pulse"
+                                                    >
+                                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                                    </motion.div>
+                                                )}
                                             </Link>
                                         </li>
                                     </ul>
@@ -318,7 +471,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             className="flex items-center space-x-3 w-full text-left text-error hover:text-error transition-colors font-medium py-2 disabled:opacity-50"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
                                             </svg>
                                             <span>{logoutMutation.isPending ? 'Signing out...' : 'Sign Out'}</span>
                                         </button>
@@ -363,5 +516,5 @@ export default function Navbar({ userDetails }: NavbarProps) {
                 </AnimatePresence>
             </nav>
         </motion.header>
-	);
+    );
 }

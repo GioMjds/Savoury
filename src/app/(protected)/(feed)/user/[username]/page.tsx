@@ -26,7 +26,7 @@ export async function generateMetadata({
 		}
 
 		return {
-			title: `${data.user.fullname} | Savoury`,
+			title: `${data.user.fullname}`,
 			description: `View ${data.user.fullname}'s recipes and cooking profile on Savoury`,
 		};
 	} catch {
@@ -45,12 +45,17 @@ export default async function Profile({
 	const currentUser = await getCurrentUser();
 	const queryClient = new QueryClient();
 
-	const data = await queryClient.fetchQuery({
-		queryKey: ['profile', username],
-		queryFn: () => user.fetchUserProfile(username),
-	});
+	try {
+		const data = await queryClient.fetchQuery({
+			queryKey: ['profile', username],
+			queryFn: () => user.fetchUserProfile(username),
+		});
+	
+		if (!data) return notFound();
+	} catch (error) {
+		console.error(`Error fetching user profile: ${error}`);
+	}
 
-	if (!data) return notFound();
 
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>

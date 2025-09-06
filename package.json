@@ -7,8 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest",
-    "server": "ts-node socket-server.ts"
+    "test": "jest"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.0.0",

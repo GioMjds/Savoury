@@ -5,65 +5,81 @@ import { FoodCategories } from '@/types/FeedResponse';
 import { getSession } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
-	try {
-		const session = await getSession();
-		
-		if (!session || !session.userId) {
-			const publicRecipes = await prisma.recipe.findMany({
-				orderBy: { created_at: 'desc' },
-				include: {
-					user: {
-						select: {
-							user_id: true,
-							fullname: true,
-							username: true,
-							profile_image: true
-						}
-					},
-					recipeIngredients: {
-						include: {
-							ingredient: true
-						}
-					},
-					instructions: {
-						orderBy: { step_number: 'asc' }
-					},
-					comments: {
-						select: {
-							comment_id: true,
-							comment_text: true
-						}
-					},
-					userLikes: {
-						select: {
-							user_like_id: true,
-							user_id: true,
-							created_at: true,
-						}
-					},
-					bookmarks: {
-						select: {
-							user_id: true
-						}
-					},
-				}
-			});
+    try {
+        const session = await getSession();
+        
+        if (!session || !session.userId) {
+            const publicRecipes = await prisma.recipe.findMany({
+                orderBy: { created_at: 'desc' },
+                include: {
+                    user: {
+                        select: {
+                            user_id: true,
+                            fullname: true,
+                            username: true,
+                            profile_image: true
+                        }
+                    },
+                    recipeIngredients: {
+                        include: {
+                            ingredient: true
+                        }
+                    },
+                    instructions: {
+                        orderBy: { step_number: 'asc' }
+                    },
+                    comments: {
+                        include: {
+                            user: {
+                                select: {
+                                    user_id: true,
+                                    username: true,
+                                    fullname: true,
+                                    profile_image: true,
+                                }
+                            }
+                        },
+                        orderBy: {
+                            created_at: 'desc'
+                        },
+                        take: 3, // Limit to latest 3 comments for performance
+                    },
+                    userLikes: {
+                        select: {
+                            user_like_id: true,
+                            user_id: true,
+                            created_at: true,
+                        }
+                    },
+                    bookmarks: {
+                        select: {
+                            user_id: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            comments: true, // Get total comment count
+                        }
+                    }
+                }
+            });
 
-			const publicRecipesWithFlags = publicRecipes.map(recipe => ({
-				...recipe,
-				isLiked: recipe.userLikes.length > 0,
-				isBookmarked: recipe.bookmarks.length > 0,
-			}));
+            const publicRecipesWithFlags = publicRecipes.map(recipe => ({
+                ...recipe,
+                isLiked: recipe.userLikes.length > 0,
+                isBookmarked: recipe.bookmarks.length > 0,
+                totalComments: recipe._count.comments,
+            }));
 
-			return NextResponse.json({
-				message: "Public recipe posts retrieved successfully",
-				feed: publicRecipesWithFlags,
-			}, { status: 200 });
-		}
+            return NextResponse.json({
+                message: "Public recipe posts retrieved successfully",
+                feed: publicRecipesWithFlags,
+            }, { status: 200 });
+        }
 
-		const userId = session.userId;
+        const userId = session.userId;
 
-		const recipes = await prisma.recipe.findMany({
+        const recipes = await prisma.recipe.findMany({
             orderBy: { created_at: 'desc' },
             include: {
                 user: {
@@ -83,23 +99,41 @@ export async function GET(req: NextRequest) {
                     orderBy: { step_number: 'asc' }
                 },
                 comments: {
-                    select: {
-                        comment_id: true,
-                        comment_text: true
-                    }
+                    include: {
+                        user: {
+                            select: {
+                                user_id: true,
+                                username: true,
+                                fullname: true,
+                                profile_image: true,
+                            }
+                        }
+                    },
+                    orderBy: {
+                        created_at: 'desc'
+                    },
+                    take: 3, // Limit to latest 3 comments for performance
                 },
                 userLikes: {
-					select: {
-						user_like_id: true,
-						user_id: true,
-						created_at: true,
-					}
+                    where: { user_id: userId }, // Only get current user's likes
+                    select: {
+                        user_like_id: true,
+                        user_id: true,
+                        created_at: true,
+                    }
                 },
                 bookmarks: {
-					select: {
-						user_id: true
-					}
+                    where: { user_id: userId }, // Only get current user's bookmarks
+                    select: {
+                        user_id: true
+                    }
                 },
+                _count: {
+                    select: {
+                        comments: true, // Get total comment count
+                        userLikes: true, // Get total likes count
+                    }
+                }
             }
         });
 
@@ -110,7 +144,9 @@ export async function GET(req: NextRequest) {
             return {
                 ...recipe,
                 isLiked,
-                isBookmarked
+                isBookmarked,
+                likes: recipe._count.userLikes, // Set actual likes count
+                totalComments: recipe._count.comments,
             };
         });
 
@@ -118,11 +154,11 @@ export async function GET(req: NextRequest) {
             message: "Recipe posts retrieved successfully",
             feed: recipesWithFlags,
         }, { status: 200 });
-	} catch (error) {
-		return NextResponse.json({
-			error: `/feed GET error: ${error}`,
-		}, { status: 500 });
-	}
+    } catch (error) {
+        return NextResponse.json({
+            error: `/feed GET error: ${error}`,
+        }, { status: 500 });
+    }
 }
 
 export async function POST(req: NextRequest) {
