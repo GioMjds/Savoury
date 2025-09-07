@@ -879,6 +879,18 @@ export async function DELETE(
                     await tx.notification.deleteMany({
                         where: { recipe_id: Number(recipeId) }
                     });
+
+                    await tx.instruction.deleteMany({
+                        where: { recipe_id: Number(recipeId) }
+                    });
+
+                    await tx.recipeIngredient.deleteMany({
+                        where: { recipe_id: Number(recipeId) }
+                    });
+
+                    await tx.recipe.delete({
+                        where: { recipe_id: Number(recipeId) }
+                    });
                 });
 
                 return NextResponse.json({
