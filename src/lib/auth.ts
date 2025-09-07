@@ -101,22 +101,15 @@ export function isValidSession(session: any): session is SessionData {
 export async function getSession(): Promise<SessionData | null> {
     try {
         const cookieStore = await cookies();
-        const accessToken = cookieStore.get('access_token')?.value;
-        
-        if (!accessToken) {
-            return null;
-        }
+        const accessTokenCookie = cookieStore.get('access_token');
 
-        if (typeof accessToken !== 'string' || accessToken.trim() === '') {
-            return null;
-        }
+        if (!accessTokenCookie) return null;
+
+        const accessToken = accessTokenCookie.value;
 
         const { payload } = await verifyToken(accessToken);
-        
-        if (!isValidSession(payload)) {
-            return null;
-        }
-        
+
+        if (!isValidSession(payload)) return null;
         return payload;
     } catch (error) {
         console.error(`Error getting session: ${error}`);
@@ -125,8 +118,7 @@ export async function getSession(): Promise<SessionData | null> {
 }
 
 export async function getCurrentUser() {
-    const session = await getSession();
-    if (!session) return null;
+    const session = await getSession() as SessionData;
 
     try {
         return await prisma.users.findUnique({

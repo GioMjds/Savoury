@@ -1,5 +1,8 @@
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 interface StatCardProps {
-	icon: string;
+	icon: IconDefinition;
 	label: string;
 	value: string;
 }
@@ -11,7 +14,7 @@ export default function StatCard({
 }: StatCardProps) {
 	return (
 		<div className="bg-muted rounded-lg p-4 text-center">
-			<div className="text-2xl mb-2">{icon}</div>
+			<FontAwesomeIcon icon={icon} className="text-2xl mb-2 text-foreground" />
 			<div className="text-xs text-muted mb-1">{label}</div>
 			<div className="text-sm font-semibold text-foreground">{value}</div>
 		</div>

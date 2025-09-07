@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { memo, useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faClock,
@@ -17,6 +17,8 @@ import {
     faChevronUp,
     faChevronDown,
     faListOl,
+    faEdit,
+    faTrash,
 } from '@fortawesome/free-solid-svg-icons';
 import {
     faBookmark as faBookmarkRegular,
@@ -27,6 +29,8 @@ import { Comment, PostBlockProps } from '@/types/RecipeResponse';
 import { useBookmark } from '@/hooks/useBookmark';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { recipeAction } from '@/services/Recipe';
+import Dropdown from './Dropdown';
+import Modal from './Modal';
 
 const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
     const [likeCount, setLikeCount] = useState<number>(recipe.likes);
@@ -34,7 +38,9 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
     const [commentText, setCommentText] = useState<string>('');
     const [replyText, setReplyText] = useState<string>('');
     const [replyToCommentId, setReplyToCommentId] = useState<number | null>(null);
-    const [showAllInstructions, setShowAllInstructions] = useState(false);
+    const [showAllInstructions, setShowAllInstructions] = useState<boolean>(false);
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+    const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
     const queryClient = useQueryClient();
 
@@ -123,6 +129,19 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
         },
     });
 
+    const deleteRecipe = useMutation({
+        mutationFn: async (recipeId: number) => {
+            return await recipeAction.deleteRecipePost(recipeId);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['feed'] });
+            setShowDeleteModal(false);
+        },
+        onError: (error) => {
+            console.error(`Error deleting the recipe: ${error}`);
+        },
+    });
+
     const {
         isBookmarked,
         isLoading: bookmarkLoading,
@@ -179,6 +198,54 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
     const commentsCount = recipe.comments.length;
     const isLikeLoading = likeRecipe.isPending || unlikeRecipe.isPending;
 
+    const isOwnRecipe = currentUserId === recipe.user.user_id;
+
+    const dropdownOptions = [
+        {
+            label: isBookmarked ? 'Remove Bookmark' : 'Add to Bookmarks',
+            onClick: async () => {
+                await toggleBookmark(recipe.recipe_id);
+            },
+            icon: <FontAwesomeIcon icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular} />,
+            disabled: bookmarkLoading,
+        },
+        {
+            label: 'View Recipe',
+            href: `/recipe/${recipe.recipe_id}`,
+            icon: <FontAwesomeIcon icon={faUtensils} />,
+        },
+        {
+            label: 'View Profile',
+            href: `/profile/${recipe.user.user_id}`,
+            icon: <FontAwesomeIcon icon={faUsers} />,
+        },
+        ...(isOwnRecipe ? [
+            {
+                label: 'Edit Recipe',
+                href: `/edit/${recipe.recipe_id}`,
+                icon: <FontAwesomeIcon icon={faEdit} />,
+            },
+            {
+                label: 'Delete Recipe',
+                onClick: () => setShowDeleteModal(true),
+                icon: <FontAwesomeIcon icon={faTrash} />,
+                variant: 'danger' as const,
+            },
+        ] : []),
+    ];
+
+    const handleDeleteConfirm = () => {
+        deleteRecipe.mutate(recipe.recipe_id);
+    };
+
+    const handleDropdownToggle = () => {
+        setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const handleDropdownClose = () => {
+        setIsDropdownOpen(false);
+    };
+
     return (
         <motion.article
             initial={{ opacity: 0, y: 20 }}
@@ -218,30 +285,30 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
                         onClick={handleBookmarkClick}
                         disabled={bookmarkLoading}
                         className={`p-2 rounded-full cursor-pointer transition-all duration-200 hover:scale-110 disabled:opacity-70 disabled:cursor-not-allowed ${
-                            isBookmarked
-                                ? 'text-yellow-400'
-                                : 'text-muted hover:text-primary'
-                        }`}
-                        title={
-                            isBookmarked
-                                ? 'Remove from bookmarks'
-                                : 'Add to bookmarks'
-                        }
+                            isBookmarked ? 'text-yellow-400' : 'text-muted hover:text-primary'}`}
+                        title={isBookmarked ? 'Remove from bookmarks' : 'Add to bookmarks'}
                     >
                         <FontAwesomeIcon
-                            icon={
-                                isBookmarked
-                                    ? faBookmarkSolid
-                                    : faBookmarkRegular
-                            }
-                            className={`transition-colors duration-200 ${
-                                bookmarkLoading ? 'animate-pulse' : ''
-                            }`}
+                            icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular}
+                            className={`transition-colors duration-200 ${bookmarkLoading ? 'animate-pulse' : ''}`}
                         />
                     </button>
-                    <button className="p-2 text-muted hover:text-foreground rounded-full transition-colors">
-                        <FontAwesomeIcon icon={faEllipsisH} />
-                    </button>
+                    
+                    <div className="relative">
+                        <button 
+                            onClick={handleDropdownToggle}
+                            className="p-2 text-muted hover:text-foreground rounded-full transition-colors"
+                        >
+                            <FontAwesomeIcon icon={faEllipsisH} />
+                        </button>
+                        <Dropdown
+                            options={dropdownOptions}
+                            position="bottom"
+                            isOpen={isDropdownOpen}
+                            onToggle={handleDropdownToggle}
+                            onClose={handleDropdownClose}
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -698,6 +765,21 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
                     )}
                 </div>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && (
+                <Modal
+                    title="Delete Recipe"
+                    description="Are you sure you want to delete this recipe? This action cannot be undone."
+                    onCancel={() => setShowDeleteModal(false)}
+                    onConfirm={handleDeleteConfirm}
+                    cancelText="Cancel"
+                    confirmText="Delete"
+                    isOpen={showDeleteModal}
+                    loading={deleteRecipe.isPending}
+                    loadingText="Deleting..."
+                />
+            )}
         </motion.article>
     );
 };

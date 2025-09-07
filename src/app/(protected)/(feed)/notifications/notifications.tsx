@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faBell,
@@ -26,11 +26,11 @@ const notificationTypes = {
 	default: { icon: faBell, color: 'text-primary' },
 };
 
-export default function NotifPage() {
+export default function NotifPage({ userId }: { userId: number | null }) {
 	const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
 	const { data, refetch } = useQuery({
 		queryKey: ['notifications', 1],
-		queryFn: () => user.fetchNotifications({ page: 1, limit: 20 }),
+		queryFn: () => user.fetchNotifications({ page: 1, limit: 10, userId: userId }),
 	});
 
 	const handleMarkAsRead = async (notificationId: number) => {
@@ -52,8 +52,8 @@ export default function NotifPage() {
 	};
 
 	const filteredNotifications = activeTab === 'unread'
-			? data?.notifications.filter((notification: any) => !notification.is_read)
-			: data?.notifications;
+		? data?.notifications.filter((notification: any) => !notification.is_read)
+		: data?.notifications;
 
 	return (
 		<div className="min-h-screen w-6xl container mx-auto p-6 pt-20">

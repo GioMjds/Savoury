@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faClock, 
@@ -13,42 +13,42 @@ import {
 import { formatCategory } from '@/utils/formaters';
 
 interface IngredientInput {
-	quantity?: number | string;
-	unit?: string;
-	ingredient_name: string;
+    quantity?: number | string;
+    unit?: string;
+    ingredient_name: string;
 }
 
 interface PostPreviewProps {
-	title?: string;
-	description?: string;
-	imagePreview?: string | null;
-	prepTime: number;
-	cookTime: number;
-	servings: number;
-	category?: string;
-	ingredients?: IngredientInput[];
-	instructions?: { value: string }[];
+    title?: string;
+    description?: string;
+    imagePreview?: string | null;
+    prepTime: number;
+    cookTime: number;
+    servings: number;
+    category?: string;
+    ingredients?: IngredientInput[];
+    instructions?: { value: string }[];
     fullName: string;
-	username?: string;
+    username?: string;
     profileImage: string;
 }
 
 const PostPreview = ({
-	title = '',
-	description = '',
-	imagePreview,
-	prepTime,
-	cookTime,
-	servings,
-	category,
-	ingredients = [],
-	instructions = [],
+    title = '',
+    description = '',
+    imagePreview,
+    prepTime,
+    cookTime,
+    servings,
+    category,
+    ingredients = [],
+    instructions = [],
     fullName,
-	username,
-	profileImage
+    username,
+    profileImage
 }: PostPreviewProps) => {
-	const validIngredients = ingredients.filter(ing => ing.ingredient_name?.trim());
-	const validInstructions = instructions.filter(inst => inst.value?.trim());
+    const validIngredients = ingredients.filter(ing => ing.ingredient_name?.trim());
+    const validInstructions = instructions.filter(inst => inst.value?.trim());
 
     const formatDescription = (text: string) => {
         if (!text) return '';
@@ -57,12 +57,12 @@ const PostPreview = ({
             .split('\n')
             .map((line, index) => (
                 <span key={index} className="block">
-                    {line} {/* Use non-breaking space for empty lines */}
+                    {line || '\u00A0'} {/* Use non-breaking space for empty lines */}
                 </span>
             ));
     };
 
-	return (
+    return (
         <div className="space-y-6">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -77,7 +77,7 @@ const PostPreview = ({
                             <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-primary/20">
                                 <Image 
                                     src={profileImage}
-                                    alt={`Profile image of ${username}`}
+                                    alt={`Profile image of ${username || fullName}`}
                                     width={48}
                                     height={48}
                                     priority
@@ -87,7 +87,7 @@ const PostPreview = ({
                         </div>
                         <div className="flex-1">
                             <h1 className="text-lg font-bold text-foreground leading-tight">{fullName}</h1>
-                            <p className="text-sm text-muted">@{username}</p>
+                            <p className="text-sm text-muted">@{username || 'username'}</p>
                         </div>
                         <div className="text-xs text-muted bg-white/50 px-3 py-1 rounded-full">
                             Preview Mode
@@ -281,7 +281,7 @@ const PostPreview = ({
                 </div>
             </motion.div>
         </div>
-	)
+    )
 }
 
 export default PostPreview;

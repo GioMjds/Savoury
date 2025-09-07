@@ -13,7 +13,7 @@ import {
 	faUtensils,
 } from '@fortawesome/free-solid-svg-icons';
 import { useMutation } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react'
 import { auth } from '@/services/Auth';
 import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';

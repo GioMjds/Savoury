@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useRef } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
     faTimes, 

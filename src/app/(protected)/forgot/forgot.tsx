@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState, useRef } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { auth } from '@/services/Auth';
 import { validatePassword, validateEmail } from '@/utils/regex';
 import {

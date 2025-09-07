@@ -1,25 +1,20 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
-export async function GET(req: NextRequest) {
+export async function GET(
+    req: NextRequest,
+    { params }: { params: Promise<{ userId: string }> }
+) {
     try {
-        const session = await getSession();
-        
-        if (!session) {
-            return NextResponse.json({
-                error: "Unauthorized"
-            }, { status: 401 });
-        }
+        const { userId } = await params;
 
-        const userId = session.userId;
         const searchParams = req.nextUrl.searchParams;
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
         const offset = (page - 1) * limit;
 
         const notifications = await prisma.notification.findMany({
-            where: { recipient_id: userId },
+            where: { recipient_id: Number(userId) },
             include: {
                 sender: {
                     select: {
@@ -44,7 +39,7 @@ export async function GET(req: NextRequest) {
 
         const unreadCount = await prisma.notification.count({
             where: {
-                recipient_id: userId,
+                recipient_id: Number(userId),
                 is_read: false
             }
         });
@@ -54,9 +49,8 @@ export async function GET(req: NextRequest) {
             unreadCount,
             currentPage: page,
             totalPages: Math.ceil(unreadCount / limit),
-            userId: userId
+            userId: Number(userId)
         }, { status: 200 });
-
     } catch (error) {
         return NextResponse.json({
             error: `Failed to fetch notifications: ${error}`
@@ -64,17 +58,13 @@ export async function GET(req: NextRequest) {
     }
 }
 
-export async function PUT(req: NextRequest) {
+export async function PUT(
+    req: NextRequest,
+    { params }: { params: Promise<{ userId: string }> }
+) {
     try {
-        const session = await getSession();
-        
-        if (!session) {
-            return NextResponse.json({
-                error: "Unauthorized"
-            }, { status: 401 });
-        }
-
-        const { searchParams } = new URL(req.url);
+        const { userId } = await params;
+        const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get('action');
         const notificationId = searchParams.get('notificationId');
 
@@ -89,7 +79,7 @@ export async function PUT(req: NextRequest) {
                 await prisma.notification.update({
                     where: { 
                         notification_id: parseInt(notificationId),
-                        recipient_id: session.userId
+                        recipient_id: Number(userId)
                     },
                     data: { is_read: true }
                 });
@@ -100,7 +90,7 @@ export async function PUT(req: NextRequest) {
             }
             case 'mark_all_read': {
                 await prisma.notification.updateMany({
-                    where: { recipient_id: session.userId },
+                    where: { recipient_id: Number(userId) },
                     data: { is_read: true }
                 });
 

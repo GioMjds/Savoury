@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { feed } from '@/services/Feed';
 import PostBlock from '@/components/PostBlock';
 import { FeedRecipe, FeedResponse } from '@/types/FeedResponse';

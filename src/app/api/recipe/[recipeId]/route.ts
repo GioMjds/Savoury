@@ -631,7 +631,93 @@ export async function PUT(
                 }
             }
             case "edit_recipe_post": {
+                const { title,
+                    description,
+                    image_url,
+                    prep_time_minutes,
+                    cook_time_minutes,
+                    servings,
+                    category,
+                    ingredients,
+                    instructions
+                } = await req.json();
 
+                const recipeExists = await prisma.recipe.findUnique({
+                    where: { recipe_id: Number(recipeId) }
+                });
+
+                if (!recipeExists) {
+                    return NextResponse.json({
+                        error: "Recipe not found. You can't edit a non-existent recipe."
+                    }, { status: 404 })
+                }
+
+                if (recipeExists.user_id !== userId) {
+                    return NextResponse.json({
+                        error: "You can only edit your own recipes."
+                    }, { status: 403 });
+                }
+
+                const updatedRecipe = await prisma.recipe.update({
+                    where: { recipe_id: Number(recipeId) },
+                    data: {
+                        title,
+                        description,
+                        image_url,
+                        prep_time_minutes,
+                        cook_time_minutes,
+                        servings,
+                        category,
+                    }
+                });
+
+                await prisma.recipeIngredient.deleteMany({
+                    where: { recipe_id: Number(recipeId) }
+                });
+
+                await prisma.instruction.deleteMany({
+                    where: { recipe_id: Number(recipeId) }
+                });
+
+                if (Array.isArray(ingredients) && ingredients.length > 0) {
+                    for (const ing of ingredients) {
+                        // Find or create ingredient
+                        let ingredientRecord = await prisma.ingredient.findUnique({
+                            where: { ingredient_name: ing.ingredient_name.trim() }
+                        });
+                        if (!ingredientRecord) {
+                            ingredientRecord = await prisma.ingredient.create({
+                                data: { ingredient_name: ing.ingredient_name.trim() }
+                            });
+                        }
+                        await prisma.recipeIngredient.create({
+                            data: {
+                                recipe_id: Number(recipeId),
+                                ingredient_id: ingredientRecord.ingredient_id,
+                                quantity: ing.quantity ? Number(ing.quantity) : null,
+                                unit: ing.unit || null
+                            }
+                        });
+                    }
+                }
+
+                if (Array.isArray(instructions) && instructions.length > 0) {
+                    for (let i = 0; i < instructions.length; i++) {
+                        const step = instructions[i];
+                        await prisma.instruction.create({
+                            data: {
+                                recipe_id: Number(recipeId),
+                                step_number: i + 1,
+                                step_text: step.value
+                            }
+                        });
+                    }
+                }
+
+                return NextResponse.json({
+                    message: "Recipe updated successfully",
+                    recipe: updatedRecipe
+                }, { status: 200 });
             }
             case "like_comment": {
                 const commentId = searchParams.get("commentId");

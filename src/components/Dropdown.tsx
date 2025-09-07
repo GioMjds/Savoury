@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react'
 import { FC, ReactNode, useRef, useEffect } from 'react';
 import Image from 'next/image';
 

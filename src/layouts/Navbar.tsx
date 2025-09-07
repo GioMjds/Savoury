@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRef, useState, useEffect } from 'react';
 import { auth } from '@/services/Auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { navigationItems } from '@/constants/homepage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -53,25 +53,22 @@ export default function Navbar({ userDetails }: NavbarProps) {
     const [unreadCount, setUnreadCount] = useState<number>(0);
 
     const profileRef = useRef<HTMLDivElement | null>(null);
-    // const { socket, isConnected } = useSocket();
     const router = useRouter();
     const queryClient = useQueryClient();
 
     const { data: notificationsData } = useQuery({
         queryKey: ['notifications', userDetails?.id],
-        queryFn: () => user.fetchNotifications({ page: 1, limit: 1 }),
+        queryFn: () => user.fetchNotifications({ page: 1, limit: 1, userId: userDetails?.id ? parseInt(userDetails.id) : null }),
         enabled: !!userDetails?.id,
         refetchOnWindowFocus: false,
     });
 
-    // Initialize unread count from API
     useEffect(() => {
         if (notificationsData?.unreadCount !== undefined) {
             setUnreadCount(notificationsData.unreadCount);
         }
     }, [notificationsData]);
 
-    // Listen for socket-based notification events
     useEffect(() => {
         if (!userDetails?.id) return;
 
@@ -80,38 +77,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
         const handleNewNotification = (notification: Notification) => {
             console.log('🔔 New notification received in Navbar:', notification);
             if (notification.recipient_id && notification.recipient_id === currentUserId) {
-                // Update unread count
                 setUnreadCount(prev => prev + 1);
-                
-                // Show toast notification
-                toast.info(
-                    <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                            <Image
-                                src={notification.sender.profile_image || '/Default_pfp.jpg'}
-                                alt={notification.sender.fullname}
-                                width={32}
-                                height={32}
-                                className="object-cover"
-                            />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-medium text-sm">{notification.sender.fullname}</p>
-                            <p className="text-xs text-gray-600">
-                                {notification.message.replace(notification.sender.fullname, '')}
-                            </p>
-                        </div>
-                    </div>,
-                    {
-                        position: "top-right",
-                        autoClose: 4000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                    }
-                );
-
-                // Invalidate notifications query to refresh data
                 queryClient.invalidateQueries({ queryKey: ['notifications'] });
             } else {
                 console.log('🚫 Ignoring notification not meant for current user');
@@ -119,22 +85,12 @@ export default function Navbar({ userDetails }: NavbarProps) {
         };
 
         const handleNotificationRemoved = (data: { type: string; recipeId: number; senderId: number; recipientId?: number }) => {
-            console.log('🗑️ Notification removed in Navbar:', data);
-            
-            // Only process notification removals that affect the current user
             if (!data.recipientId || data.recipientId === currentUserId) {
                 setUnreadCount(prev => Math.max(0, prev - 1));
-                
-                // Invalidate notifications query to refresh data
                 queryClient.invalidateQueries({ queryKey: ['notifications'] });
             }
         };
 
-        // Listen to socket events
-        // socket.on('new-notification', handleNewNotification);
-        // socket.on('notification-removed', handleNotificationRemoved);
-
-        // Listen to custom window events (fallback)
         const handleCustomNewNotification = (event: CustomEvent) => {
             handleNewNotification(event.detail);
         };

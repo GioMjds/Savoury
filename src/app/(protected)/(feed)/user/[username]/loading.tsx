@@ -2,7 +2,7 @@
 
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 const skeletonCards = Array.from({ length: 4 }, (_, i) => i);
 const bookmarkItems = Array.from({ length: 4 }, (_, i) => i);

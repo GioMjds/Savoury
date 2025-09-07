@@ -2,8 +2,9 @@ import { httpClient } from "@/configs/axios";
 import { UserProfileResponse } from "@/types/User";
 
 interface NotificationsParams {
-    page?: number;
-    limit?: number;
+    page: number;
+    limit: number;
+    userId: number | null;
 }
 
 class UserService {
@@ -13,12 +14,13 @@ class UserService {
 
     async fetchNotifications(params: NotificationsParams) {
         const searchParams = new URLSearchParams();
+        const userId = params.userId;
 
-        if (params?.page) searchParams.append('page', params.page.toString());
-        if (params?.limit) searchParams.append('limit', params.limit.toString());
+        if (params.page) searchParams.append('page', params.page.toString());
+        if (params.limit) searchParams.append('limit', params.limit.toString());
 
         const queryString = searchParams.toString();
-        const url = queryString ? `/notifications?${queryString}` : '/notifications';
+        const url = queryString ? `/notifications/${userId}?${queryString}` : '/notifications';
 
         return await httpClient.get(url);
     }
