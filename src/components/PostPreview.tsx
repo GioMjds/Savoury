@@ -10,7 +10,7 @@ import {
     faListUl,
     faTasks
 } from '@fortawesome/free-solid-svg-icons';
-import { formatCategory } from '@/utils/formaters';
+import { formatCategory, formatTime } from '@/utils/formaters';
 
 interface IngredientInput {
     quantity?: number | string;
@@ -22,8 +22,14 @@ interface PostPreviewProps {
     title?: string;
     description?: string;
     imagePreview?: string | null;
-    prepTime: number;
-    cookTime: number;
+    // New time format
+    prepTimeValue?: number;
+    prepTimeUnit?: string;
+    cookTimeValue?: number;
+    cookTimeUnit?: string;
+    // Legacy time format (for backward compatibility)
+    prepTime?: number;
+    cookTime?: number;
     servings: number;
     category?: string;
     ingredients?: IngredientInput[];
@@ -37,6 +43,10 @@ const PostPreview = ({
     title = '',
     description = '',
     imagePreview,
+    prepTimeValue,
+    prepTimeUnit,
+    cookTimeValue,
+    cookTimeUnit,
     prepTime,
     cookTime,
     servings,
@@ -154,7 +164,8 @@ const PostPreview = ({
                                 </div>
                                 <p className="text-sm font-medium text-muted mb-1">Prep Time</p>
                                 <p className="text-xl font-bold text-foreground">
-                                    {prepTime > 0 ? `${prepTime}m` : '--'}
+                                    {(prepTimeValue && prepTimeUnit) ? formatTime(prepTimeValue, prepTimeUnit) : 
+                                     (prepTime && prepTime > 0) ? `${prepTime}m` : '--'}
                                 </p>
                             </div>
                             <div className="text-center">
@@ -163,7 +174,8 @@ const PostPreview = ({
                                 </div>
                                 <p className="text-sm font-medium text-muted mb-1">Cook Time</p>
                                 <p className="text-xl font-bold text-foreground">
-                                    {cookTime > 0 ? `${cookTime}m` : '--'}
+                                    {(cookTimeValue && cookTimeUnit) ? formatTime(cookTimeValue, cookTimeUnit) : 
+                                     (cookTime && cookTime > 0) ? `${cookTime}m` : '--'}
                                 </p>
                             </div>
                             <div className="text-center">

@@ -1,5 +1,4 @@
 onlyBuiltDependencies:
-  - '@firebase/util'
   - '@prisma/client'
   - '@prisma/engines'
   - '@tailwindcss/oxide'

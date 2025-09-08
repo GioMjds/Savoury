@@ -14,7 +14,6 @@ import {
     faSave
 } from '@fortawesome/free-solid-svg-icons';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
 import { user } from '@/services/User';
 import { getSocialLinkInfo, isValidUrl, formatUrl } from '@/utils/socialLinks';
 import { useRouter } from 'next/navigation';
@@ -125,12 +124,10 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
         const file = event.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                toast.error('File size must be less than 5MB');
                 return;
             }
 
             if (!file.type.startsWith('image/')) {
-                toast.error('Please select an image file');
                 return;
             }
 
@@ -193,10 +190,7 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
                     queryKey: ['profile', userProfile.username]
                 });
             }
-            
             onClose();
-            toast.success('Profile updated successfully!');
-
             if (usernameChanged) {
                 router.push(`/user/${data.username}`);
             } else {
@@ -204,7 +198,6 @@ const EditProfileModal = ({ isOpen, onClose, userProfile }: EditProfileModalProp
             }
         } catch (error) {
             console.error('Profile update error:', error);
-            toast.error('Failed to update profile. Please try again.');
         } finally {
             setIsSubmitting(false);
         }

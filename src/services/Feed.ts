@@ -17,12 +17,20 @@ class FeedService {
 			formData.append('description', recipeData.description);
 		}
 
-		if (recipeData.prep_time_minutes) {
-			formData.append('prep_time_minutes', recipeData.prep_time_minutes.toString());
+		if (recipeData.prep_time_value) {
+			formData.append('prep_time_value', recipeData.prep_time_value.toString());
 		}
 
-		if (recipeData.cook_time_minutes) {
-			formData.append('cook_time_minutes', recipeData.cook_time_minutes.toString());
+		if (recipeData.prep_time_unit) {
+			formData.append('prep_time_unit', recipeData.prep_time_unit);
+		}
+
+		if (recipeData.cook_time_value) {
+			formData.append('cook_time_value', recipeData.cook_time_value.toString());
+		}
+
+		if (recipeData.cook_time_unit) {
+			formData.append('cook_time_unit', recipeData.cook_time_unit);
 		}
 
 		if (recipeData.servings) {
@@ -43,8 +51,8 @@ class FeedService {
 		});
 	}
 
-	async searchRecipePost() {
-		// Implement search functionality
+	async searchRecipePost(query: string) {
+		return await httpClient.get(`/search?q=${encodeURIComponent(query)}`);
 	}
 }
 

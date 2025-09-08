@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { TimeUnit } from "@prisma/client";
 
 export async function GET(
     req: NextRequest,
@@ -610,8 +611,10 @@ export async function PUT(
                 const { title,
                     description,
                     image_url,
-                    prep_time_minutes,
-                    cook_time_minutes,
+                    prep_time_value,
+                    prep_time_unit,
+                    cook_time_value,
+                    cook_time_unit,
                     servings,
                     category,
                     ingredients,
@@ -640,8 +643,10 @@ export async function PUT(
                         title,
                         description,
                         image_url,
-                        prep_time_minutes,
-                        cook_time_minutes,
+                        prep_time_value: prep_time_value ? Number(prep_time_value) : null,
+                        prep_time_unit: prep_time_unit ? (prep_time_unit as TimeUnit) : null,
+                        cook_time_value: cook_time_value ? Number(cook_time_value) : null,
+                        cook_time_unit: cook_time_unit ? (cook_time_unit as TimeUnit) : null,
                         servings,
                         category,
                     }

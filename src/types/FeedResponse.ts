@@ -11,6 +11,8 @@ export enum FoodCategories {
     SideDish = "side_dish"
 }
 
+export type TimeUnit = 'minutes' | 'hours' | 'days';
+
 export interface IngredientInput {
     quantity?: number | string;
     unit?: string;
@@ -23,8 +25,10 @@ export interface RecipeData {
     category: string;
     description?: string;
     image_url?: File | string | null;
-    prep_time_minutes?: number;
-    cook_time_minutes?: number;
+    prep_time_value?: number;
+    prep_time_unit?: TimeUnit;
+    cook_time_value?: number;
+    cook_time_unit?: TimeUnit;
     servings?: number;
     ingredients: IngredientInput[];
     instructions: { value: string }[];
@@ -34,8 +38,10 @@ export type NewRecipeForm = {
     title: string;
     description?: string;
     image_url?: FileList | string | null;
-    prep_time_minutes: number;
-    cook_time_minutes: number;
+    prep_time_value: number;
+    prep_time_unit: TimeUnit;
+    cook_time_value: number;
+    cook_time_unit: TimeUnit;
     servings: number;
     ingredients: IngredientInput[];
     instructions: { value: string }[];
@@ -99,8 +105,10 @@ export interface FeedRecipe {
     title: string;
     description: string | null;
     image_url: string | null;
-    prep_time_minutes: number | null;
-    cook_time_minutes: number | null;
+    prep_time_value: number | null;
+    prep_time_unit: TimeUnit | null;
+    cook_time_value: number | null;
+    cook_time_unit: TimeUnit | null;
     servings: number | null;
     category: string;
     average_rating?: number;

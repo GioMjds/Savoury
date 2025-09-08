@@ -281,23 +281,10 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
                 </Link>
 
                 <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleBookmarkClick}
-                        disabled={bookmarkLoading}
-                        className={`p-2 rounded-full cursor-pointer transition-all duration-200 hover:scale-110 disabled:opacity-70 disabled:cursor-not-allowed ${
-                            isBookmarked ? 'text-yellow-400' : 'text-muted hover:text-primary'}`}
-                        title={isBookmarked ? 'Remove from bookmarks' : 'Add to bookmarks'}
-                    >
-                        <FontAwesomeIcon
-                            icon={isBookmarked ? faBookmarkSolid : faBookmarkRegular}
-                            className={`transition-colors duration-200 ${bookmarkLoading ? 'animate-pulse' : ''}`}
-                        />
-                    </button>
-                    
                     <div className="relative">
                         <button 
                             onClick={handleDropdownToggle}
-                            className="p-2 text-muted hover:text-foreground rounded-full transition-colors"
+                            className="p-2 text-muted cursor-pointer hover:text-foreground rounded-full transition-colors"
                         >
                             <FontAwesomeIcon icon={faEllipsisH} />
                         </button>
@@ -314,6 +301,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
 
             {/* Recipe Image */}
             <Link
+                prefetch
                 href={`/recipe/${recipe.recipe_id}`}
                 className="block relative"
             >
@@ -355,7 +343,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
 
                 {/* Recipe Stats */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                    {recipe.prep_time_minutes && (
+                    {recipe.prep_time_value && recipe.prep_time_unit && (
                         <div className="text-center p-3 bg-muted/30 rounded-lg">
                             <FontAwesomeIcon
                                 icon={faClock}
@@ -365,11 +353,11 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
                                 Preparation Time
                             </p>
                             <p className="text-md font-semibold text-foreground">
-                                {formatTime(recipe.prep_time_minutes)}
+                                {formatTime(recipe.prep_time_value, recipe.prep_time_unit)}
                             </p>
                         </div>
                     )}
-                    {recipe.cook_time_minutes && (
+                    {recipe.cook_time_value && recipe.cook_time_unit && (
                         <div className="text-center p-3 bg-muted/30 rounded-lg">
                             <FontAwesomeIcon
                                 icon={faUtensils}
@@ -377,7 +365,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
                             />
                             <p className="text-sm text-muted mb-1">Cook Time</p>
                             <p className="text-md font-semibold text-foreground">
-                                {formatTime(recipe.cook_time_minutes)}
+                                {formatTime(recipe.cook_time_value, recipe.cook_time_unit)}
                             </p>
                         </div>
                     )}

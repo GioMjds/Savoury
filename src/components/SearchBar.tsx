@@ -2,59 +2,61 @@
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import { feed } from '@/services/Feed';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 
 interface SearchBarProps {
     className?: string;
     placeholder?: string;
-    onSearch?: (query: string) => void;
 }
 
 const SearchBar = ({ 
     className = "", 
-    onSearch 
+    placeholder
 }: SearchBarProps) => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [isFocused, setIsFocused] = useState<boolean>(false);
 
-    const handleSearch = (e: React.FormEvent) => {
+    const router = useRouter();
+    const queryClient = useQueryClient();
+
+    const searchMutation = useMutation({
+        mutationFn: (query: string) => feed.searchRecipePost(query),
+        onSuccess: () => {
+            router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+            queryClient.invalidateQueries({
+                queryKey: ['search', searchQuery]
+            });
+        },
+        onError: (error) => {
+            console.error(`Search error: ${error}`);
+        }
+    });
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (searchQuery.trim() && onSearch) {
-            onSearch(searchQuery.trim());
+        if (searchQuery.trim()) {
+            searchMutation.mutate(searchQuery.trim());
         }
     };
 
     return (
         <motion.form
-            onSubmit={handleSearch}
-            className={`relative w-full mx-auto ${className}`}
+            onSubmit={handleSubmit}
+            className={`relative ${className}`}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}
         >
             <div className="relative">
-                <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    placeholder="Search for recipes, ingredients, or Savoury users..."
-                    className={`
-                        w-full px-4 py-2 pl-10 pr-4
-                        bg-white border border-border rounded-lg
-                        text-foreground placeholder-gray-500
-                        focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                        transition-all duration-200
-                        ${isFocused ? 'shadow-md' : 'shadow-sm'}
-                    `}
-                />
-                
-                {/* Search Icon */}
-                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                <motion.div
+                    className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none"
+                    animate={{ scale: isFocused ? 1.1 : 1 }}
+                    transition={{ duration: 0.2 }}
+                >
                     <svg
-                        className={`w-4 h-4 transition-colors duration-200 ${
-                            isFocused ? 'text-primary' : 'text-gray-400'
-                        }`}
+                        className={`w-4 h-4 transition-colors duration-200 ${isFocused ? 'text-primary' : 'text-gray-400'}`}
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -67,14 +69,33 @@ const SearchBar = ({
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                         />
                     </svg>
-                </div>
-
+                </motion.div>
+                
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    placeholder={placeholder}
+                    className={`
+                        w-full px-4 py-2.5 pl-10 pr-10
+                        bg-white border border-border rounded-xl
+                        text-foreground placeholder-gray-500
+                        focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
+                        transition-all duration-200
+                        ${isFocused ? 'shadow-md' : 'shadow-sm'}
+                    `}
+                />
+                
                 {/* Clear button */}
                 {searchQuery && (
-                    <button
+                    <motion.button
                         type="button"
                         onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                     >
                         <svg
                             className="w-4 h-4"
@@ -89,7 +110,7 @@ const SearchBar = ({
                                 d="M6 18L18 6M6 6l12 12"
                             />
                         </svg>
-                    </button>
+                    </motion.button>
                 )}
             </div>
         </motion.form>

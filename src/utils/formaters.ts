@@ -8,7 +8,20 @@ export const formatDate = (dateString: string) => {
 	});
 };
 
-export const formatTime = (minutes?: number) => {
+export const formatTime = (value?: number, unit?: string) => {
+	if (!value || !unit) return 'N/A';
+	
+	const unitMap: Record<string, string> = {
+		'minutes': value === 1 ? 'min' : 'mins',
+		'hours': value === 1 ? 'hr' : 'hrs', 
+		'days': value === 1 ? 'day' : 'days'
+	};
+	
+	return `${value} ${unitMap[unit] || unit}`;
+};
+
+// Legacy function for backward compatibility (converts minutes to readable format)
+export const formatTimeMinutes = (minutes?: number) => {
 	if (!minutes) return 'N/A';
 	const hours = Math.floor(minutes / 60);
 	const mins = minutes % 60;

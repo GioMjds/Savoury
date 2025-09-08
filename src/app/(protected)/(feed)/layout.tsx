@@ -40,16 +40,6 @@ export default async function RootLayout({
 			<SocketProvider>
 				<Navbar userDetails={userDetails} />
 				{children}
-				<ToastContainer
-					position="bottom-right"
-					autoClose={5000}
-					hideProgressBar={false}
-					newestOnTop={false}
-					closeOnClick
-					rtl={false}
-					pauseOnFocusLoss
-					pauseOnHover
-				/>
 			</SocketProvider>
 		</main>
 	);

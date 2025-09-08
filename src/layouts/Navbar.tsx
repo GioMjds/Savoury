@@ -123,10 +123,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
         }
     });
 
-    const handleSearch = (query: string) => {
-        router.push(`/search?q=${encodeURIComponent(query)}`);
-    };
-
     const handleNotificationClick = () => {
         // Don't reset count here - let the notifications page handle it
         // The count will be updated when notifications are marked as read
@@ -152,27 +148,34 @@ export default function Navbar({ userDetails }: NavbarProps) {
         >
             <nav className="container mx-auto px-4 lg:px-8">
                 <div className="flex items-center justify-between h-16">
-                    {/* Logo */}
-                    <Link prefetch href="/" className="flex items-center space-x-1">
-                        <Image 
-                            src="/savoury-logo.png" 
-                            alt="Savoury Logo" 
-                            width={65} 
-                            height={65}
-                            className="drop-shadow-sm"
-                        />
-                        <span className="text-xl font-bold hidden sm:block text-primary">
-                            Savoury
-                        </span>
-                    </Link>
+                    {/* Logo and Search (for authenticated users) */}
+                    <div className="flex items-center space-x-4">
+                        <Link prefetch href="/" className="flex items-center space-x-1">
+                            <Image 
+                                src="/savoury-logo.png" 
+                                alt="Savoury Logo" 
+                                width={65} 
+                                height={65}
+                                priority
+                                className="drop-shadow-sm"
+                            />
+                            <span className="text-xl font-bold hidden sm:block text-primary">
+                                Savoury
+                            </span>
+                        </Link>
+
+                        {userDetails && (
+                            <div className="hidden md:block w-80">
+                                <SearchBar 
+                                    placeholder='Search for recipes, ingredients, or Savoury users...'
+                                />
+                            </div>
+                        )}
+                    </div>
 
                     {/* Navigation Section - Conditional based on authentication */}
                     {userDetails ? (
-                        <div className="hidden md:flex items-center justify-center mx-10">
-                            {/* Search Bar */}
-                            <SearchBar 
-                                onSearch={handleSearch}
-                            />
+                        <div className="flex items-center space-x-2">
                             {authenticatedNavbarItems.map(({ href, label, icon, ariaLabel }) => (
                                 <motion.div
                                     key={href}
@@ -189,7 +192,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             <FontAwesomeIcon icon={icon} size="xl" className="mb-1" />
                                             {href === '/notifications' && unreadCount > 0 && (
                                                 <motion.div
-                                                    key={unreadCount} // Force re-animation when count changes
+                                                    key={unreadCount}
                                                     initial={{ scale: 0 }}
                                                     animate={{ scale: 1 }}
                                                     exit={{ scale: 0 }}
@@ -205,39 +208,8 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     </Link>
                                 </motion.div>
                             ))}
-                        </div>
-                    ) : (
-                        // Non-authenticated: Show navigation links
-                        <ul className="hidden md:flex items-center space-x-8">
-                            {navigationItems.map(({ href, label }) => (
-                                <li key={href}>
-                                    <Link
-                                        href={href}
-                                        className="text-foreground hover:text-primary transition-colors font-medium relative group"
-                                    >
-                                        {label}
-                                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full"></span>
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-
-                    {/* Mobile Menu Button */}
-                    <button 
-                        className="md:hidden flex flex-col space-y-1.5"
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        aria-label={isMenuOpen ? "Close menu" : "Open menu"}
-                        aria-expanded={isMenuOpen}
-                    >
-                        <span className={`w-6 h-0.5 bg-foreground transition-transform ${isMenuOpen ? 'rotate-45 translate-y-2' : ''}`}></span>
-                        <span className={`w-6 h-0.5 bg-foreground transition-opacity ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-                        <span className={`w-6 h-0.5 bg-foreground transition-transform ${isMenuOpen ? '-rotate-45 -translate-y-2' : ''}`}></span>
-                    </button>
-
-                    {/* Auth Section - Profile or Login/Register */}
-                    <section className="hidden md:flex items-center space-x-4">
-                        {userDetails ? (
+                            
+                            {/* Profile Section */}
                             <div className="relative" ref={profileRef}>
                                 <motion.button
                                     onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -255,16 +227,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             className="object-cover"
                                         />
                                     </div>
-                                    <svg
-                                        className={`w-6 h-6 text-gray-500 transition-transform ${
-                                            showProfileDropdown ? 'rotate-180' : ''
-                                        }`}
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
                                 </motion.button>
 
                                 {/* Profile Dropdown */}
@@ -289,47 +251,127 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     ]}
                                 />
                             </div>
-                        ) : (
-                            <>
+                        </div>
+                    ) : (
+                        // Non-authenticated: Show navigation links
+                        <motion.ul 
+                            className="hidden md:flex items-center space-x-8"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                        >
+                            {navigationItems.map(({ href, label }, index) => (
+                                <motion.li 
+                                    key={href}
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.4 + index * 0.1, duration: 0.3 }}
+                                    whileHover={{ y: -2 }}
+                                >
+                                    <Link
+                                        href={href}
+                                        className="relative text-foreground hover:text-primary transition-all duration-300 font-medium group px-2 py-1"
+                                    >
+                                        {label}
+                                        <motion.span 
+                                            className="absolute -bottom-1 left-0 h-0.5 bg-primary rounded-full"
+                                            initial={{ width: 0 }}
+                                            whileHover={{ width: "100%" }}
+                                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                                        />
+                                    </Link>
+                                </motion.li>
+                            ))}
+                        </motion.ul>
+                    )}
+
+                    {/* Mobile Menu Button */}
+                    <motion.button 
+                        className="md:hidden flex flex-col space-y-1.5 p-2 rounded-lg hover:bg-accent transition-colors duration-300"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+                        aria-expanded={isMenuOpen}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <motion.span 
+                            className="w-6 h-0.5 bg-foreground rounded-full"
+                            animate={{
+                                rotate: isMenuOpen ? 45 : 0,
+                                y: isMenuOpen ? 8 : 0,
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        />
+                        <motion.span 
+                            className="w-6 h-0.5 bg-foreground rounded-full"
+                            animate={{
+                                opacity: isMenuOpen ? 0 : 1,
+                                x: isMenuOpen ? 20 : 0,
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        />
+                        <motion.span 
+                            className="w-6 h-0.5 bg-foreground rounded-full"
+                            animate={{
+                                rotate: isMenuOpen ? -45 : 0,
+                                y: isMenuOpen ? -8 : 0,
+                            }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        />
+                    </motion.button>
+
+                    {/* Auth Section for non-authenticated users */}
+                    {!userDetails && (
+                        <motion.div
+                            className="hidden md:flex items-center space-x-4"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4, duration: 0.5 }}
+                        >
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
                                 <Link 
                                     href="/login" 
-                                    className="text-primary hover:text-primary-hover transition-colors font-medium"
+                                    className="text-primary hover:text-primary-hover transition-all duration-300 font-medium px-3 py-2 rounded-lg hover:bg-primary/5"
                                 >
                                     Login
                                 </Link>
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.98 }}
+                            </motion.div>
+                            <motion.div
+                                whileHover={{ scale: 1.05, y: -1 }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            >
+                                <Link 
+                                    href="/register" 
+                                    className="bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white px-6 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg transform"
                                 >
-                                    <Link 
-                                        href="/register" 
-                                        className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm hover:shadow-md"
-                                    >
-                                        Register
-                                    </Link>
-                                </motion.div>
-                            </>
-                        )}
-                    </section>
+                                    Register
+                                </Link>
+                            </motion.div>
+                        </motion.div>
+                    )}
                 </div>
 
                 {/* Mobile Menu */}
                 <AnimatePresence>
                     {isMenuOpen && (
                         <motion.nav 
-                            className="md:hidden bg-white border-t border-border mt-2 py-4 px-4 rounded-lg shadow-lg"
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
+                            className="md:hidden bg-white/95 backdrop-blur-md border-t border-border mt-2 py-6 px-4 rounded-xl shadow-xl mx-2"
+                            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
                             aria-label="Mobile navigation"
                         >
                             {userDetails ? (
-                                // Authenticated mobile menu - Show SearchBar and profile
                                 <>
                                     {/* Mobile Search Bar */}
                                     <div className="mb-4">
                                         <SearchBar 
-                                            onSearch={handleSearch}
+                                            placeholder='Search for recipes, ingredients, or Savoury users...'
                                             className="w-full"
                                         />
                                     </div>

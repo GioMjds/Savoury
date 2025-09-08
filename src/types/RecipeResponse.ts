@@ -52,11 +52,13 @@ export interface LikeApiResponse {
 export interface Recipe {
 	recipe_id: number;
 	title: string;
-	description: string | null;
-	image_url: string | null;
-	prep_time_minutes: number | null;
-	cook_time_minutes: number | null;
-	servings: number | null;
+	description: string;
+	image_url: string;
+	prep_time_value: number;
+	prep_time_unit: string;
+	cook_time_value: number;
+	cook_time_unit: string;
+	servings: number;
 	category: string;
 	created_at: string;
 	likes: number;

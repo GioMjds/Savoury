@@ -13,8 +13,10 @@ export interface Recipe {
     title: string;
     description?: string;
     image_url?: string;
-    prep_time_minutes?: number;
-    cook_time_minutes?: number;
+    prep_time_value?: number;
+    prep_time_unit?: string;
+    cook_time_value?: number;
+    cook_time_unit?: string;
     servings?: number;
     average_rating: number;
     created_at: string;
@@ -77,8 +79,10 @@ export interface UserProfileResponse {
             title: string;
             description?: string;
             image_url?: string;
-            prep_time_minutes?: number;
-            cook_time_minutes?: number;
+            prep_time_value?: number;
+            prep_time_unit?: string;
+            cook_time_value?: number;
+            cook_time_unit?: string;
             servings?: number;
             category?: string;
             average_rating: number;

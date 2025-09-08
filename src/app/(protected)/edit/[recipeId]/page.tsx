@@ -39,18 +39,20 @@ export default async function EditRecipe({
 
     if (!currentUser) notFound();
 
-    try {
-        await queryClient.fetchQuery({
-            queryKey: ['recipeId', Number(recipeId)],
-            queryFn: () => recipeAction.getRecipe(Number(recipeId), currentUser.user_id!),
-        });
-    } catch {
-        notFound();
-    }
+    await queryClient.fetchQuery({
+        queryKey: ['recipeId', Number(recipeId), currentUser.user_id],
+        queryFn: () => recipeAction.getRecipe(Number(recipeId), currentUser.user_id),
+    });
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <EditRecipePost recipeId={Number(recipeId)} currentUserId={currentUser.user_id!} />
+            <EditRecipePost 
+                recipeId={Number(recipeId)} 
+                currentUserId={currentUser.user_id!} 
+                fullName={currentUser.fullname}
+                username={currentUser.username}
+                profileImage={currentUser.profile_image}
+            />
         </HydrationBoundary>
     );
 }

@@ -26,6 +26,12 @@ enum NotificationType {
     bookmark
 }
 
+enum TimeUnit {
+    minutes
+    hours
+    days
+}
+
 model Users {
     user_id       		Int       		@id @default(autoincrement())
     username      		String    		@unique @db.VarChar(25)
@@ -68,8 +74,10 @@ model Recipe {
     title             	String          @db.Text
     description       	String?         @db.Text
     image_url         	String?         @db.Text
-    prep_time_minutes 	Int?
-    cook_time_minutes 	Int?
+    prep_time_value 	Int?
+    prep_time_unit      TimeUnit?
+    cook_time_value 	Int?
+    cook_time_unit      TimeUnit?
     servings          	Int?
     category        	FoodCategories?
     average_rating    	Decimal         @default(0.00) @db.Decimal(3, 2)

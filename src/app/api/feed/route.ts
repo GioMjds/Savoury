@@ -4,6 +4,7 @@ import cloudinary from '@/lib/cloudinary';
 import { FoodCategories } from '@/types/FeedResponse';
 import { getSession } from '@/lib/auth';
 import { elasticClient } from '@/configs/elasticsearch';
+import { TimeUnit } from '@prisma/client';
 
 export async function GET(req: NextRequest) {
     try {
@@ -233,8 +234,10 @@ export async function POST(req: NextRequest) {
 				const title = formData.get('title') as string;
 				const category = formData.get('category') as FoodCategories;
 				const description = formData.get('description') as string;
-				const prep_time_minutes = formData.get('prep_time_minutes');
-				const cook_time_minutes = formData.get('cook_time_minutes');
+				const prep_time_value = formData.get('prep_time_value');
+				const prep_time_unit = formData.get('prep_time_unit') as string;
+				const cook_time_value = formData.get('cook_time_value');
+				const cook_time_unit = formData.get('cook_time_unit') as string;
 				const servings = formData.get('servings') as string;
 				const ingredientsJson = formData.get('ingredients') as string;
 				const instructionsJson = formData.get('instructions') as string;
@@ -271,6 +274,12 @@ export async function POST(req: NextRequest) {
 						error: 'No user session found.',
 					}, { status: 403 });
 				}
+
+                if (!category) {
+                    return NextResponse.json({
+                        error: 'Invalid category selected.',
+                    }, { status: 400 });
+                }
 
 				if (!ingredients || ingredients.length === 0) {
 					return NextResponse.json({
@@ -335,8 +344,10 @@ export async function POST(req: NextRequest) {
 						category: category,
 						description: description,
 						image_url: image_url,
-						prep_time_minutes: Number(prep_time_minutes),
-						cook_time_minutes: Number(cook_time_minutes),
+						prep_time_value: prep_time_value ? Number(prep_time_value) : null,
+						prep_time_unit: prep_time_unit ? (prep_time_unit as TimeUnit) : null,
+						cook_time_value: cook_time_value ? Number(cook_time_value) : null,
+						cook_time_unit: cook_time_unit ? (cook_time_unit as TimeUnit) : null,
 						servings: Number(servings),
 					},
 				});
@@ -421,8 +432,10 @@ export async function POST(req: NextRequest) {
                         category: recipe.category,
                         description: recipe.description,
                         image_url: recipe.image_url,
-                        prep_time_minutes: recipe.prep_time_minutes,
-                        cook_time_minutes: recipe.cook_time_minutes,
+                        prep_time_value: recipe.prep_time_value,
+                        prep_time_unit: recipe.prep_time_unit,
+                        cook_time_value: recipe.cook_time_value,
+                        cook_time_unit: recipe.cook_time_unit,
                         servings: recipe.servings,
                         created_at: recipe.created_at,
                     }
@@ -437,8 +450,10 @@ export async function POST(req: NextRequest) {
 						category: recipe.category,
 						description: recipe.description,
 						image_url: recipe.image_url,
-						prep_time_minutes: recipe.prep_time_minutes,
-						cook_time_minutes: recipe.cook_time_minutes,
+						prep_time_value: recipe.prep_time_value,
+						prep_time_unit: recipe.prep_time_unit,
+						cook_time_value: recipe.cook_time_value,
+						cook_time_unit: recipe.cook_time_unit,
 						servings: recipe.servings,
 						created_at: recipe.created_at,
 					},

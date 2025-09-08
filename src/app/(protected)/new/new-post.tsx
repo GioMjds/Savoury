@@ -45,6 +45,8 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 			ingredients: [{ quantity: '', unit: '', ingredient_name: '' }],
 			instructions: [{ value: '' }],
 			category: '',
+			prep_time_unit: 'minutes',
+			cook_time_unit: 'minutes',
 		},
 	});
 
@@ -94,8 +96,10 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 				title: data.title,
 				description: data.description,
 				image_url: imageValue,
-				prep_time_minutes: data.prep_time_minutes,
-				cook_time_minutes: data.cook_time_minutes,
+				prep_time_value: data.prep_time_value,
+				prep_time_unit: data.prep_time_unit,
+				cook_time_value: data.cook_time_value,
+				cook_time_unit: data.cook_time_unit,
 				servings: data.servings,
 				category: data.category,
 				ingredients: data.ingredients,
@@ -227,7 +231,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 												{...register('title', {
 													required: 'Recipe Name is required',
 												})}
-												className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+												className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
 												placeholder="Your recipe name"
 											/>
 											{errors.title && (
@@ -244,7 +248,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 											</label>
 											<select
 												{...register('category')}
-												className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+												className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
 											>
 												<option value="" disabled>Select a category</option>
 												<option value="breakfast">Breakfast</option>
@@ -269,7 +273,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 												{...register('description', {
 													required: "Food recipe description is required."
 												})}
-												className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+												className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
 												placeholder="Describe your recipe..."
 												rows={8}
 											/>
@@ -369,32 +373,54 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 										</div>
 
 										{/* Time and Servings */}
-										<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+										<div className="grid grid-cols-1 gap-4">
 											<div>
 												<label className="block text-sm font-medium mb-1 text-foreground">
-													Prep Time (min)
+													Prep Time
 												</label>
-												<input
-													type="number"
-													min={0}
-													{...register('prep_time_minutes', {
-														valueAsNumber: true,
-													})}
-													className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-												/>
+												<div className="flex gap-2">
+													<input
+														type="number"
+														min={0}
+														{...register('prep_time_value', {
+															valueAsNumber: true,
+														})}
+														className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+														placeholder="Enter your prep time..."
+													/>
+													<select
+														{...register('prep_time_unit')}
+														className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary min-w-[100px]"
+													>
+														<option value="minutes">Minutes</option>
+														<option value="hours">Hours</option>
+														<option value="days">Days</option>
+													</select>
+												</div>
 											</div>
 											<div>
 												<label className="block text-sm font-medium mb-1 text-foreground">
-													Cook Time (min)
+													Cook Time
 												</label>
-												<input
-													type="number"
-													min={0}
-													{...register('cook_time_minutes', {
-														valueAsNumber: true,
-													})}
-													className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-												/>
+												<div className="flex gap-2">
+													<input
+														type="number"
+														min={0}
+														{...register('cook_time_value', {
+															valueAsNumber: true,
+														})}
+														className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+														placeholder="Enter your cook time..."
+													/>
+													<select
+														{...register('cook_time_unit')}
+														className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary min-w-[100px]"
+													>
+														<option value="minutes">Minutes</option>
+														<option value="hours">Hours</option>
+														<option value="days">Days</option>
+													</select>
+												</div>
 											</div>
 											<div>
 												<label className="block text-sm font-medium mb-1 text-foreground">
@@ -406,7 +432,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 													{...register('servings', {
 														valueAsNumber: true,
 													})}
-													className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+													className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
 												/>
 											</div>
 										</div>
@@ -452,7 +478,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 												<div className="w-20">
 													<input
 														{...register(`ingredients.${index}.quantity`)}
-														className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+														className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
 														placeholder="2"
 														type="number"
 														step="0.25"
@@ -462,7 +488,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 												<div className="w-24">
 													<select
 														{...register(`ingredients.${index}.unit`)}
-														className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+														className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
 													>
 														<option value="" disabled>Select Unit</option>
 														<option value="cup">cup</option>
@@ -494,7 +520,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 															`ingredients.${index}.ingredient_name` as const,
 															{ required: 'Ingredient name is required' }
 														)}
-														className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+														className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
 														placeholder="flour, salt, chicken breast..."
 													/>
 												</div>
@@ -554,7 +580,7 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 												<div className="flex-1">
 													<textarea
 														{...register(`instructions.${index}.value`)}
-														className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+														className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
 														placeholder="Describe this step..."
 														rows={4}
 													/>
@@ -672,8 +698,10 @@ export default function PostNewRecipe({ userId, fullName, username, profileImage
 								profileImage={profileImage}
 								description={watchedValues.description}
 								imagePreview={imagePreview}
-								prepTime={watchedValues.prep_time_minutes}
-								cookTime={watchedValues.cook_time_minutes}
+								prepTimeValue={watchedValues.prep_time_value}
+								prepTimeUnit={watchedValues.prep_time_unit}
+								cookTimeValue={watchedValues.cook_time_value}
+								cookTimeUnit={watchedValues.cook_time_unit}
 								servings={watchedValues.servings}
 								category={watchedValues.category}
 								ingredients={watchedValues.ingredients}

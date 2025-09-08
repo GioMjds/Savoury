@@ -1,20 +1,23 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useForm, useFieldArray, SubmitHandler } from 'react-hook-form';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faCloudUploadAlt } from '@fortawesome/free-solid-svg-icons';
 import { recipeAction } from '@/services/Recipe';
 import PostPreview from '@/components/PostPreview';
 import { type RecipeApiResponse } from '@/types/RecipeResponse';
 
 interface EditRecipePostProps {
     recipeId: number;
-    currentUserId?: number | null;
+    currentUserId: number;
+    fullName: string;
+    username: string;
+    profileImage: string;
 }
 
 interface IngredientInput {
@@ -31,8 +34,10 @@ interface EditRecipeForm {
     title: string;
     description: string;
     image_url: string | File | FileList | null;
-    prep_time_minutes: number;
-    cook_time_minutes: number;
+    prep_time_value: number;
+    prep_time_unit: string;
+    cook_time_value: number;
+    cook_time_unit: string;
     servings: number;
     category: string;
     ingredients: IngredientInput[];
@@ -45,7 +50,7 @@ enum TabId {
     INSTRUCTIONS = 'instructions',
 }
 
-export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePostProps) {
+export default function EditRecipePost({ recipeId, currentUserId, fullName, username, profileImage }: EditRecipePostProps) {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabId>(TabId.BASIC);
 
@@ -53,8 +58,11 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
 
     const { data } = useQuery<RecipeApiResponse>({
         queryKey: ['recipeId', recipeId, currentUserId],
-        queryFn: () => recipeAction.getRecipe(recipeId, currentUserId!),
+        queryFn: () => recipeAction.getRecipe(recipeId, Number(currentUserId)),
+        enabled: !!currentUserId && !!recipeId,
     });
+
+    const recipe = data?.recipe;
 
     const {
         register,
@@ -62,20 +70,51 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
         control,
         formState: { errors },
         setValue,
-        watch
+        watch,
+        reset,
     } = useForm<EditRecipeForm>({
         defaultValues: {
             title: '',
             description: '',
-            image_url: '',
-            prep_time_minutes: 0,
-            cook_time_minutes: 0,
-            servings: 1,
+            image_url: null,
+            prep_time_value: 0,
+            prep_time_unit: 'minutes',
+            cook_time_value: 0,
+            cook_time_unit: 'minutes',
+            servings: 0,
             category: '',
             ingredients: [{ quantity: '', unit: '', ingredient_name: '' }],
             instructions: [{ value: '' }]
         }
     });
+
+    useEffect(() => {
+        if (recipe) {
+            reset({
+                title: recipe.title || '',
+                description: recipe.description || '',
+                image_url: recipe.image_url || null,
+                prep_time_value: recipe.prep_time_value || 0,
+                prep_time_unit: recipe.prep_time_unit || 'minutes',
+                cook_time_value: recipe.cook_time_value || 0,
+                cook_time_unit: recipe.cook_time_unit || 'minutes',
+                servings: recipe.servings || 0,
+                category: recipe.category || '',
+                ingredients: recipe.recipeIngredients?.map(ing => ({
+                    quantity: ing.quantity || '',
+                    unit: ing.unit || '',
+                    ingredient_name: ing.ingredient?.ingredient_name || ''
+                })) || [{ quantity: '', unit: '', ingredient_name: '' }],
+                instructions: recipe.instructions?.map(inst => ({
+                    value: inst.step_text || ''
+                })) || [{ value: '' }]
+            });
+
+            if (recipe.image_url && typeof recipe.image_url === 'string') {
+                setImagePreview(recipe.image_url);
+            }
+        }
+    }, [recipe, reset]);
 
     const watchedValues = watch();
 
@@ -97,50 +136,35 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
         name: 'instructions',
     });
 
-    useEffect(() => {
-        if (data?.recipe) {
-            const recipe = data.recipe;
-            setValue('title', recipe.title ?? '');
-            setValue('description', recipe.description ?? '');
-            setValue('image_url', recipe.image_url ?? '');
-            setValue('prep_time_minutes', recipe.prep_time_minutes ?? 0);
-            setValue('cook_time_minutes', recipe.cook_time_minutes ?? 0);
-            setValue('servings', recipe.servings ?? 1);
-            setValue('category', recipe.category ?? '');
-            setValue('ingredients', recipe.recipeIngredients?.map((ri: any) => ({
-                quantity: ri.quantity ?? '',
-                unit: ri.unit ?? '',
-                ingredient_name: ri.ingredient.ingredient_name ?? ''
-            })) ?? [{ quantity: '', unit: '', ingredient_name: '' }]);
-            setValue('instructions', recipe.instructions?.map((inst: any) => ({
-                value: inst.step_text
-            })) ?? [{ value: '' }]);
-            if (recipe.image_url) setImagePreview(recipe.image_url);
-        }
-    }, [data, setValue]);
-
     const mutation = useMutation({
         mutationFn: async (formData: EditRecipeForm) => {
-            let imageValue: File | string | undefined = formData.image_url as string | File | undefined;
+            let imageValue: File | string | undefined;
+            
             if (formData.image_url instanceof FileList && formData.image_url.length > 0) {
                 imageValue = formData.image_url[0];
             } else if (formData.image_url instanceof File) {
                 imageValue = formData.image_url;
             } else if (typeof formData.image_url === 'string' && formData.image_url) {
                 imageValue = formData.image_url;
+            } else {
+                imageValue = recipe?.image_url || '';
             }
+
             const payload = {
                 title: formData.title,
                 description: formData.description,
                 image_url: imageValue,
-                prep_time_minutes: formData.prep_time_minutes,
-                cook_time_minutes: formData.cook_time_minutes,
+                prep_time_value: formData.prep_time_value,
+                prep_time_unit: formData.prep_time_unit,
+                cook_time_value: formData.cook_time_value,
+                cook_time_unit: formData.cook_time_unit,
                 servings: formData.servings,
                 category: formData.category,
                 ingredients: formData.ingredients,
                 instructions: formData.instructions,
             };
-            return recipeAction.editRecipePost(recipeId, currentUserId!, payload);
+            
+            return recipeAction.editRecipePost(recipeId, currentUserId, payload);
         },
         onSuccess: () => {
             router.prefetch("/feed");
@@ -260,7 +284,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                     {...register('title', {
                                                         required: 'Recipe Name is required',
                                                     })}
-                                                    className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                                     placeholder="Your recipe name"
                                                 />
                                                 {errors.title && (
@@ -276,9 +300,9 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                 </label>
                                                 <select
                                                     {...register('category')}
-                                                    className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
                                                 >
-                                                    <option value="" disabled>Select a category</option>
+                                                    <option value="">Select a category</option>
                                                     <option value="breakfast">Breakfast</option>
                                                     <option value="lunch">Lunch</option>
                                                     <option value="dinner">Dinner</option>
@@ -300,7 +324,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                     {...register('description', {
                                                         required: "Food recipe description is required."
                                                     })}
-                                                    className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                                     placeholder="Describe your recipe..."
                                                     rows={8}
                                                 />
@@ -316,21 +340,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                         className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted"
                                                     >
                                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                            <svg
-                                                                className="w-8 h-8 mb-4 text-muted-foreground"
-                                                                aria-hidden="true"
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                fill="none"
-                                                                viewBox="0 0 20 16"
-                                                            >
-                                                                <path
-                                                                    stroke="currentColor"
-                                                                    strokeLinecap="round"
-                                                                    strokeLinejoin="round"
-                                                                    strokeWidth="2"
-                                                                    d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"
-                                                                />
-                                                            </svg>
+                                                            <FontAwesomeIcon icon={faCloudUploadAlt} size="2xl" className="mb-4 text-muted-foreground" />
                                                             <div className="mb-2 text-sm text-muted-foreground">
                                                                 <span className="font-semibold">
                                                                     Click to upload
@@ -367,7 +377,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                             alt="Preview"
                                                             width={160}
                                                             height={160}
-                                                            priority
+                                                            loading="lazy"
                                                             className="rounded-lg border border-border object-cover h-80 w-full"
                                                         />
                                                         <button
@@ -398,32 +408,54 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                 )}
                                             </div>
                                             {/* Time and Servings */}
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="grid grid-cols-1 gap-4">
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1 text-foreground">
-                                                        Prep Time (min)
+                                                        Prep Time
                                                     </label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        {...register('prep_time_minutes', {
-                                                            valueAsNumber: true,
-                                                        })}
-                                                        className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                    />
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            {...register('prep_time_value', {
+                                                                valueAsNumber: true,
+                                                            })}
+                                                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                                            placeholder="Enter your prep time..."
+                                                        />
+                                                        <select
+                                                            {...register('prep_time_unit')}
+                                                            className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary min-w-[100px]"
+                                                        >
+                                                            <option value="minutes">Minutes</option>
+                                                            <option value="hours">Hours</option>
+                                                            <option value="days">Days</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1 text-foreground">
-                                                        Cook Time (min)
+                                                        Cook Time
                                                     </label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        {...register('cook_time_minutes', {
-                                                            valueAsNumber: true,
-                                                        })}
-                                                        className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                    />
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            {...register('cook_time_value', {
+                                                                valueAsNumber: true,
+                                                            })}
+                                                            className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                                                            placeholder="Enter your cook time..."
+                                                        />
+                                                        <select
+                                                            {...register('cook_time_unit')}
+                                                            className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary min-w-[100px]"
+                                                        >
+                                                            <option value="minutes">Minutes</option>
+                                                            <option value="hours">Hours</option>
+                                                            <option value="days">Days</option>
+                                                        </select>
+                                                    </div>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-medium mb-1 text-foreground">
@@ -435,7 +467,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                         {...register('servings', {
                                                             valueAsNumber: true,
                                                         })}
-                                                        className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                                     />
                                                 </div>
                                             </div>
@@ -478,7 +510,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                     <div className="w-20">
                                                         <input
                                                             {...register(`ingredients.${index}.quantity`)}
-                                                            className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                                             placeholder="2"
                                                             type="number"
                                                             step="0.25"
@@ -488,9 +520,9 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                     <div className="w-24">
                                                         <select
                                                             {...register(`ingredients.${index}.unit`)}
-                                                            className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                                         >
-                                                            <option value="" disabled>Select Unit</option>
+                                                            <option value="">Select Unit</option>
                                                             <option value="cup">cup</option>
                                                             <option value="cups">cups</option>
                                                             <option value="tsp">tsp</option>
@@ -520,7 +552,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                                 `ingredients.${index}.ingredient_name` as const,
                                                                 { required: 'Ingredient name is required' }
                                                             )}
-                                                            className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                                             placeholder="flour, salt, chicken breast..."
                                                         />
                                                     </div>
@@ -579,7 +611,7 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                                                     <div className="flex-1">
                                                         <textarea
                                                             {...register(`instructions.${index}.value`)}
-                                                            className="w-full px-3 py-2 border border-input-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                                                             placeholder="Describe this step..."
                                                             rows={4}
                                                         />
@@ -689,13 +721,15 @@ export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePo
                         <div className="overflow-y-auto">
                             <PostPreview
                                 title={watchedValues.title}
-                                fullName={data?.recipe?.user?.fullname ?? ''}
-                                username={data?.recipe?.user?.username ?? ''}
-                                profileImage={data?.recipe?.user?.profile_image ?? '/default-avatar.png'}
+                                fullName={fullName}
+                                username={username}
+                                profileImage={profileImage}
                                 description={watchedValues.description}
                                 imagePreview={imagePreview}
-                                prepTime={watchedValues.prep_time_minutes || 0}
-                                cookTime={watchedValues.cook_time_minutes || 0}
+                                prepTimeValue={watchedValues.prep_time_value || 0}
+                                prepTimeUnit={watchedValues.prep_time_unit}
+                                cookTimeValue={watchedValues.cook_time_value || 0}
+                                cookTimeUnit={watchedValues.cook_time_unit}
                                 servings={watchedValues.servings || 0}
                                 category={watchedValues.category}
                                 ingredients={watchedValues.ingredients}
