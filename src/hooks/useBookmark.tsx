@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { toast } from 'react-toastify';
 import { recipeAction } from '@/services/Recipe';
 
-export const useBookmark = (initialBookmarkState: boolean = false) => {
+export const useBookmark = (initialBookmarkState: boolean = false, currentUserId: number) => {
     const [isBookmarked, setIsBookmarked] = useState(initialBookmarkState);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -12,32 +11,15 @@ export const useBookmark = (initialBookmarkState: boolean = false) => {
         if (isLoading) return;
 
         setIsLoading(true);
-        const previousState = isBookmarked;
-
         setIsBookmarked(!isBookmarked);
 
         try {
-            await recipeAction.toggleBookmark(recipeId);
-
-            const updatedRecipeResponse = await recipeAction.getRecipe(recipeId);
+            await recipeAction.toggleBookmark(recipeId, currentUserId);
+            const updatedRecipeResponse = await recipeAction.getRecipe(recipeId, currentUserId);
             const updatedRecipe = updatedRecipeResponse.data || updatedRecipeResponse.recipe || updatedRecipeResponse;
-
             setIsBookmarked(updatedRecipe.isBookmarked);
-
-            toast.success(updatedRecipe.isBookmarked ? 'Recipe bookmarked!' : 'Bookmark removed!',
-                {
-                    position: "bottom-right",
-                    autoClose: 3000,
-                }
-            );
         } catch (error: any) {
-            setIsBookmarked(previousState);
-
-            const errorMessage = error?.message || 'Failed to update bookmark. Please try again.';
-            toast.error(errorMessage, {
-                position: "bottom-right",
-                autoClose: 3000,
-            });
+            console.log(`Error toggling bookmark: ${error}`);
         } finally {
             setIsLoading(false);
         }

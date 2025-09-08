@@ -17,7 +17,7 @@ export default function GetRecipePost({ recipeId, currentUserId }: RecipePostPro
 
     const { data } = useQuery<RecipeApiResponse>({
         queryKey: ['recipeId', recipeId],
-        queryFn: () => recipeAction.getRecipe(recipeId),
+        queryFn: () => recipeAction.getRecipe(recipeId, currentUserId!),
         refetchOnWindowFocus: false,
     });
 

@@ -14,6 +14,7 @@ import { type RecipeApiResponse } from '@/types/RecipeResponse';
 
 interface EditRecipePostProps {
     recipeId: number;
+    currentUserId?: number | null;
 }
 
 interface IngredientInput {
@@ -44,15 +45,15 @@ enum TabId {
     INSTRUCTIONS = 'instructions',
 }
 
-export default function EditRecipePost({ recipeId }: EditRecipePostProps) {
+export default function EditRecipePost({ recipeId, currentUserId }: EditRecipePostProps) {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<TabId>(TabId.BASIC);
 
     const router = useRouter();
 
     const { data } = useQuery<RecipeApiResponse>({
-        queryKey: ['recipeId', recipeId],
-        queryFn: () => recipeAction.getRecipe(recipeId),
+        queryKey: ['recipeId', recipeId, currentUserId],
+        queryFn: () => recipeAction.getRecipe(recipeId, currentUserId!),
     });
 
     const {
@@ -139,7 +140,7 @@ export default function EditRecipePost({ recipeId }: EditRecipePostProps) {
                 ingredients: formData.ingredients,
                 instructions: formData.instructions,
             };
-            return recipeAction.editRecipePost(recipeId, payload);
+            return recipeAction.editRecipePost(recipeId, currentUserId!, payload);
         },
         onSuccess: () => {
             router.prefetch("/feed");

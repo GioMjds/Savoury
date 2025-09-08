@@ -1,18 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ recipeId: string }> }
+    { params }: { params: Promise<{ recipeId: string; userId: string }> }
 ) {
-    const { recipeId } = await params;
+    const { recipeId, userId } = await params;
     try {
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get('action');
-
-        const session = await getSession();
-        const userId = session?.userId;
 
         switch (action) {
             case "get_recipe_post": {
@@ -56,8 +52,8 @@ export async function GET(
                                         profile_image: true,
                                     }
                                 },
-                                likes: userId ? {
-                                    where: { user_id: userId },
+                                likes: Number(userId) ? {
+                                    where: { user_id: Number(userId) },
                                     select: {
                                         user_id: true,
                                         comment_like_id: true
@@ -73,8 +69,8 @@ export async function GET(
                                                 profile_image: true,
                                             }
                                         },
-                                        likes: userId ? {
-                                            where: { user_id: userId },
+                                        likes: Number(userId) ? {
+                                            where: { user_id: Number(userId) },
                                             select: {
                                                 user_id: true,
                                                 comment_like_id: true
@@ -101,11 +97,11 @@ export async function GET(
                                 created_at: "desc"
                             }
                         },
-                        userLikes: userId ? {
-                            where: { user_id: userId }
+                        userLikes: Number(userId) ? {
+                            where: { user_id: Number(userId) }
                         } : false,
-                        bookmarks: userId ? {
-                            where: { user_id: userId },
+                        bookmarks: Number(userId) ? {
+                            where: { user_id: Number(userId) },
                             select: {
                                 user_id: true
                             }
@@ -145,28 +141,19 @@ export async function GET(
         }
     } catch (error) {
         return NextResponse.json({
-            error: `/api/recipe/[recipeId] GET error: ${error}`
+            error: `/api/recipe/[recipeId]/[userId] GET error: ${error}`
         }, { status: 500 });
     }
 }
 
 export async function POST(
     req: NextRequest,
-    { params }: { params: Promise<{ recipeId: string }> }
+    { params }: { params: Promise<{ recipeId: string; userId: string }> }
 ) {
-    const { recipeId } = await params;
+    const { recipeId, userId } = await params;
     try {
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get("action");
-        const session = await getSession();
-
-        if (!session) {
-            return NextResponse.json({
-                error: "Unauthorized - No session found"
-            }, { status: 401 });
-        }
-
-        const userId = session.userId;
 
         switch (action) {
             case "like_post": {
@@ -193,7 +180,7 @@ export async function POST(
                 const existingLike = await prisma.userLike.findUnique({
                     where: {
                         user_id_recipe_id: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             recipe_id: Number(recipeId)
                         }
                     }
@@ -206,7 +193,7 @@ export async function POST(
                 }
 
                 const currentUser = await prisma.users.findUnique({
-                    where: { user_id: userId },
+                    where: { user_id: Number(userId) },
                     select: {
                         user_id: true,
                         username: true,
@@ -221,12 +208,10 @@ export async function POST(
                     }, { status: 404 });
                 }
 
-                // Create like and notification in transaction
                 const result = await prisma.$transaction(async (tx) => {
-                    // Create the like
                     await tx.userLike.create({
                         data: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             recipe_id: Number(recipeId)
                         }
                     });
@@ -243,7 +228,7 @@ export async function POST(
                     const notification = await tx.notification.create({
                         data: {
                             recipient_id: recipe.user_id,
-                            sender_id: userId,
+                            sender_id: Number(userId),
                             recipe_id: Number(recipeId),
                             type: 'like',
                             message: `${currentUser.fullname} liked your recipe "${recipe.title}"`
@@ -335,7 +320,7 @@ export async function POST(
                 const result = await prisma.$transaction(async (tx) => {
                     const newComment = await tx.comment.create({
                         data: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             recipe_id: Number(recipeId),
                             comment_text: comment
                         },
@@ -352,11 +337,11 @@ export async function POST(
                     });
 
                     let notification = null;
-                    if (recipe.user_id !== userId) {
+                    if (recipe.user_id !== Number(userId)) {
                         notification = await tx.notification.create({
                             data: {
                                 recipient_id: recipe.user_id,
-                                sender_id: userId,
+                                sender_id: Number(userId),
                                 recipe_id: Number(recipeId),
                                 type: 'comment',
                                 message: `${currentUser.fullname} commented on your recipe "${recipe.title}"`
@@ -477,7 +462,7 @@ export async function POST(
                 const result = await prisma.$transaction(async (tx) => {
                     const newReply = await tx.comment.create({
                         data: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             recipe_id: Number(recipeId),
                             parent_comment_id: Number(parentCommentId),
                             comment_text: comment
@@ -495,11 +480,11 @@ export async function POST(
                     });
 
                     let notification = null;
-                    if (parentComment.user_id !== userId) {
+                    if (parentComment.user_id !== Number(userId)) {
                         notification = await tx.notification.create({
                             data: {
                                 recipient_id: parentComment.user_id,
-                                sender_id: userId,
+                                sender_id: Number(userId),
                                 recipe_id: Number(recipeId),
                                 type: 'comment',
                                 message: `${currentUser.fullname} replied to your comment on "${recipe.title}"`
@@ -568,21 +553,12 @@ export async function POST(
 
 export async function PUT(
     req: NextRequest,
-    { params }: { params: Promise<{ recipeId: string }> }
+    { params }: { params: Promise<{ recipeId: string; userId: string }> }
 ) {
-    const { recipeId } = await params;
+    const { recipeId, userId } = await params;
     try {
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get("action");
-        const session = await getSession();
-
-        if (!session || !session.userId) {
-            return NextResponse.json({
-                error: "Unauthorized - No session found"
-            }, { status: 401 });
-        }
-
-        const userId = session.userId;
 
         switch (action) {
             case "bookmark": {
@@ -599,7 +575,7 @@ export async function PUT(
                 const existingBookmark = await prisma.bookmark.findUnique({
                     where: {
                         user_id_recipe_id: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             recipe_id: Number(recipeId)
                         }
                     }
@@ -619,7 +595,7 @@ export async function PUT(
                 } else {
                     await prisma.bookmark.create({
                         data: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             recipe_id: Number(recipeId)
                         }
                     });
@@ -652,7 +628,7 @@ export async function PUT(
                     }, { status: 404 })
                 }
 
-                if (recipeExists.user_id !== userId) {
+                if (recipeExists.user_id !== Number(userId)) {
                     return NextResponse.json({
                         error: "You can only edit your own recipes."
                     }, { status: 403 });
@@ -681,7 +657,6 @@ export async function PUT(
 
                 if (Array.isArray(ingredients) && ingredients.length > 0) {
                     for (const ing of ingredients) {
-                        // Find or create ingredient
                         let ingredientRecord = await prisma.ingredient.findUnique({
                             where: { ingredient_name: ing.ingredient_name.trim() }
                         });
@@ -749,7 +724,7 @@ export async function PUT(
                 const existingLike = await prisma.commentLike.findUnique({
                     where: {
                         user_id_comment_id: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             comment_id: Number(commentId)
                         }
                     }
@@ -783,7 +758,7 @@ export async function PUT(
                     await prisma.$transaction(async (tx) => {
                         await tx.commentLike.create({
                             data: {
-                                user_id: userId,
+                                user_id: Number(userId),
                                 comment_id: Number(commentId)
                             }
                         });
@@ -821,21 +796,12 @@ export async function PUT(
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: Promise<{ recipeId: string }> }
+    { params }: { params: Promise<{ recipeId: string; userId: string }> }
 ) {
-    const { recipeId } = await params;
+    const { recipeId, userId } = await params;
     try {
         const searchParams = req.nextUrl.searchParams;
         const action = searchParams.get("action");
-        const session = await getSession();
-
-        if (!session) {
-            return NextResponse.json({
-                error: "Unauthorized - No session found"
-            }, { status: 401 });
-        }
-
-        const userId = session.userId;
 
         switch (action) {
             case "delete_post": {
@@ -849,7 +815,7 @@ export async function DELETE(
                     }, { status: 404 });
                 }
 
-                if (recipe.user_id !== userId) {
+                if (recipe.user_id !== Number(userId)) {
                     return NextResponse.json({
                         error: "You can only delete your own recipes"
                     }, { status: 403 });
@@ -916,7 +882,7 @@ export async function DELETE(
                 const existingLike = await prisma.userLike.findUnique({
                     where: {
                         user_id_recipe_id: {
-                            user_id: userId,
+                            user_id: Number(userId),
                             recipe_id: Number(recipeId)
                         }
                     }
@@ -934,7 +900,7 @@ export async function DELETE(
                     await tx.userLike.delete({
                         where: {
                             user_id_recipe_id: {
-                                user_id: userId,
+                                user_id: Number(userId),
                                 recipe_id: Number(recipeId)
                             }
                         }
@@ -951,7 +917,7 @@ export async function DELETE(
                     // Remove the like notification
                     const deletedNotifications = await tx.notification.deleteMany({
                         where: {
-                            sender_id: userId,
+                            sender_id: Number(userId),
                             recipe_id: Number(recipeId),
                             type: 'like'
                         }
@@ -998,14 +964,12 @@ export async function DELETE(
                     }, { status: 404 });
                 }
 
-                // Only allow users to delete their own comments
-                if (comment.user_id !== userId) {
+                if (comment.user_id !== Number(userId)) {
                     return NextResponse.json({
                         error: "You can only delete your own comments"
                     }, { status: 403 });
                 }
 
-                // Delete comment (this will cascade delete replies and likes due to schema)
                 await prisma.comment.delete({
                     where: { comment_id: Number(commentId) }
                 });

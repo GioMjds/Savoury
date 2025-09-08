@@ -56,7 +56,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
     // Like / unlike mutations
     const likeRecipe = useMutation({
         mutationFn: async (recipeId: number) => {
-            return await recipeAction.likeRecipePost(recipeId);
+            return await recipeAction.likeRecipePost(recipeId, currentUserId!);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['feed'] });
@@ -68,7 +68,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
 
     const unlikeRecipe = useMutation({
         mutationFn: async (recipeId: number) => {
-            return await recipeAction.unlikeRecipePost(recipeId);
+            return await recipeAction.unlikeRecipePost(recipeId, currentUserId!);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['feed'] });
@@ -81,7 +81,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
     // Comment mutations
     const postComment = useMutation({
         mutationFn: async (commentData: { comment: string }) => {
-            return await recipeAction.postComment(recipe.recipe_id, commentData);
+            return await recipeAction.postComment(recipe.recipe_id, currentUserId!, commentData);
         },
         onSuccess: () => {
             setCommentText('');
@@ -98,7 +98,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
     // Reply mutation
     const postReply = useMutation({
         mutationFn: async (replyData: { comment: string; parentCommentId: number }) => {
-            return await recipeAction.replyToComment(recipe.recipe_id, replyData);
+            return await recipeAction.replyToComment(recipe.recipe_id, currentUserId!, replyData);
         },
         onSuccess: () => {
             setReplyText('');
@@ -116,7 +116,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
     // Comment like / unlike mutation
     const likeComment = useMutation({
         mutationFn: async (commentId: number) => {
-            return await recipeAction.likeComment(recipe.recipe_id, commentId);
+            return await recipeAction.likeComment(recipe.recipe_id, currentUserId!, commentId);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['feed'] });
@@ -131,7 +131,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
 
     const deleteRecipe = useMutation({
         mutationFn: async (recipeId: number) => {
-            return await recipeAction.deleteRecipePost(recipeId);
+            return await recipeAction.deleteRecipePost(recipeId, currentUserId!);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['feed'] });
@@ -146,7 +146,7 @@ const PostBlock = ({ recipe, currentUserId, currentUser }: PostBlockProps) => {
         isBookmarked,
         isLoading: bookmarkLoading,
         toggleBookmark,
-    } = useBookmark(recipe.isBookmarked ?? false);
+    } = useBookmark(recipe.isBookmarked ?? false, currentUserId!);
 
     const handleBookmarkClick = async (e: React.MouseEvent) => {
         e.preventDefault();

@@ -15,9 +15,11 @@ export async function generateMetadata({
 	params: Promise<{ recipeId: number }>;
 }): Promise<Metadata> {
 	const { recipeId } = await params;
+	const currentUser = await getCurrentUser();
+	const currentUserId = currentUser?.user_id;
 
 	try {
-		const data = await recipeAction.getRecipe(recipeId);
+		const data = await recipeAction.getRecipe(recipeId, currentUserId!);
 
 		if (!data) {
 			return {
@@ -51,7 +53,7 @@ export default async function RecipePostId({
 	try {
 		const data = await queryClient.fetchQuery({
 			queryKey: ['recipeId', recipeId],
-			queryFn: () => recipeAction.getRecipe(recipeId),
+			queryFn: () => recipeAction.getRecipe(recipeId, currentUserId!),
 		});
 		if (!data) return notFound();
 	} catch {
