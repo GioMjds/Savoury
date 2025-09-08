@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import cloudinary from '@/lib/cloudinary';
 import { FoodCategories } from '@/types/FeedResponse';
 import { getSession } from '@/lib/auth';
+import { elasticClient } from '@/configs/elasticsearch';
 
 export async function GET(req: NextRequest) {
     try {
@@ -409,6 +410,23 @@ export async function POST(req: NextRequest) {
 						});
 					}
 				}
+
+                await elasticClient.index({
+                    index: 'savoury-index',
+                    id: recipe.recipe_id.toString(),
+                    document: {
+                        recipe_id: recipe.recipe_id,
+                        user_id: recipe.user_id,
+                        title: recipe.title,
+                        category: recipe.category,
+                        description: recipe.description,
+                        image_url: recipe.image_url,
+                        prep_time_minutes: recipe.prep_time_minutes,
+                        cook_time_minutes: recipe.cook_time_minutes,
+                        servings: recipe.servings,
+                        created_at: recipe.created_at,
+                    }
+                });
 
 				return NextResponse.json({
 					message: 'Recipe created successfully!',
