@@ -7,12 +7,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
 interface SearchBarProps {
-    className?: string;
     placeholder?: string;
 }
 
-const SearchBar = ({ 
-    className = "", 
+const SearchBar = ({
     placeholder
 }: SearchBarProps) => {
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -44,7 +42,6 @@ const SearchBar = ({
     return (
         <motion.form
             onSubmit={handleSubmit}
-            className={`relative ${className}`}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.2 }}

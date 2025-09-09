@@ -1,8 +1,7 @@
-import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import type { Metadata } from "next";
+import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import EditRecipePost from "./edit-recipe-post";
 import { recipeAction } from "@/services/Recipe";
-import { notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
 export async function generateMetadata({
@@ -14,7 +13,7 @@ export async function generateMetadata({
     const currentUser = await getCurrentUser();
 
     try {
-        const data = await recipeAction.getRecipe(recipeId, currentUser?.user_id!);
+        const data = await recipeAction.getRecipe(recipeId, currentUser.user_id);
 
         return {
             title: `Edit Recipe - ${data?.recipe?.title ?? "Recipe"}`,
@@ -37,8 +36,6 @@ export default async function EditRecipe({
     const queryClient = new QueryClient();
     const currentUser = await getCurrentUser();
 
-    if (!currentUser) notFound();
-
     await queryClient.fetchQuery({
         queryKey: ['recipeId', Number(recipeId), currentUser.user_id],
         queryFn: () => recipeAction.getRecipe(Number(recipeId), currentUser.user_id),
@@ -48,7 +45,7 @@ export default async function EditRecipe({
         <HydrationBoundary state={dehydrate(queryClient)}>
             <EditRecipePost 
                 recipeId={Number(recipeId)} 
-                currentUserId={currentUser.user_id!} 
+                currentUserId={currentUser.user_id} 
                 fullName={currentUser.fullname}
                 username={currentUser.username}
                 profileImage={currentUser.profile_image}

@@ -16,6 +16,7 @@
     "@fortawesome/free-regular-svg-icons": "^7.0.0",
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
     "@fortawesome/react-fontawesome": "^3.0.0",
+    "@pinecone-database/pinecone": "^6.1.2",
     "@prisma/client": "^6.15.0",
     "@tanstack/react-query": "^5.85.5",
     "@testing-library/dom": "^10.4.1",
@@ -28,6 +29,7 @@
     "framer-motion": "^12.23.12",
     "jest-environment-jsdom": "^30.0.5",
     "jose": "^6.0.13",
+    "langchain": "^0.3.33",
     "motion": "^12.23.12",
     "next": "15.5.0",
     "next-auth": "^4.24.11",
@@ -44,7 +46,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@modelcontextprotocol/server-github": "^2025.4.8",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
     "@types/jest": "^30.0.0",

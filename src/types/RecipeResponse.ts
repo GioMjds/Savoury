@@ -76,13 +76,13 @@ export type UnifiedRecipe = Recipe | import("@/types/FeedResponse").FeedRecipe;
 
 export interface PostBlockProps {
 	recipe: UnifiedRecipe;
-	currentUserId: number | null;
+	currentUserId: number;
 	currentUser: {
 		user_id: number;
 		profile_image: string;
 		fullname: string;
 		username: string;
-	} | null;
+	};
 }
 
 export interface Comment {
@@ -143,7 +143,7 @@ export interface CommentResponse {
 
 export interface RecipePostProps {
 	recipeId: number;
-	currentUserId: number | null;
+	currentUserId: number;
 }
 
 export interface RecipeApiResponse {
@@ -169,3 +169,48 @@ export interface CommentCount {
 }
 
 export type TabType = 'ingredients' | 'instructions';
+
+export interface BookmarkUser {
+    user_id: number;
+    username: string;
+    email: string;
+    fullname: string;
+    password: string;
+    profile_image: string;
+    cover_photo: string;
+    bio: string;
+    social_links: Record<string, string>;
+    gender: string | null;
+    pronouns: string | null;
+    created_at: string;
+}
+
+export interface BookmarkRecipe {
+    recipe_id: number;
+    user_id: number;
+    title: string;
+    description: string;
+    image_url: string;
+    prep_time_value: number;
+    prep_time_unit: string;
+    cook_time_value: number;
+    cook_time_unit: string;
+    servings: number;
+    category: string;
+    average_rating: string;
+    created_at: string;
+    likes: number;
+}
+
+export interface Bookmark {
+    bookmark_id: number;
+    user_id: number;
+    recipe_id: number;
+    created_at: string;
+    recipe: BookmarkRecipe;
+    user: BookmarkUser;
+}
+
+export interface SavedResponse {
+    bookmark: Bookmark[];
+}

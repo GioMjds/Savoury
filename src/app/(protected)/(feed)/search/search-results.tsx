@@ -4,13 +4,11 @@ import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { feed } from '@/services/Feed';
 import { motion, AnimatePresence } from 'motion/react';
-import { useState } from 'react';
 import SearchBar from '@/components/SearchBar';
 
 export default function SearchResultsPage() {
     const searchParams = useSearchParams();
     const query = searchParams.get('q')?.trim() || '';
-    const [searchQuery, setSearchQuery] = useState(query);
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['search', query],
@@ -35,9 +33,7 @@ export default function SearchResultsPage() {
                 </h1>
                 
                 <div className="max-w-2xl">
-                    <SearchBar 
-                        className="w-full"
-                    />
+                    <SearchBar placeholder='Search recipes...' />
                 </div>
                 
                 {query && (

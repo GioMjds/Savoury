@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { user } from "@/services/User";
 import NotifPage from "./notifications";
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function Notifications() {
     const queryClient = new QueryClient();
     const currentUser = await getCurrentUser();
-    const currentUserId = currentUser?.user_id || null;
+    const currentUserId = currentUser.user_id;
 
     try {
         await queryClient.fetchQuery({

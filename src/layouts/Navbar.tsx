@@ -2,20 +2,18 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef, useState, useEffect } from 'react';
-import { auth } from '@/services/Auth';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
+import { useRef, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { auth } from '@/services/Auth';
 import { navigationItems } from '@/constants/homepage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSignOutAlt, faUserCircle, faBell } from '@fortawesome/free-solid-svg-icons';
+import { faSignOutAlt, faUserCircle, faBell, faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
+import { user } from '@/services/User';
+import { authenticatedNavbarItems } from '@/constants/navbar';
 import SearchBar from '@/components/SearchBar';
 import Dropdown from '@/components/Dropdown';
-import { authenticatedNavbarItems } from '@/constants/navbar';
-import { useSocket } from '@/contexts/SocketContext';
-import { user } from '@/services/User';
-import { toast } from 'react-toastify';
 
 interface NavbarProps {
     userDetails?: {
@@ -33,7 +31,7 @@ interface Notification {
     message: string;
     is_read: boolean;
     created_at: string;
-    recipient_id?: number; // Add recipient_id to track who should receive this notification
+    recipient_id?: number;
     sender: {
         user_id: number;
         fullname: string;
@@ -53,6 +51,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
     const [unreadCount, setUnreadCount] = useState<number>(0);
 
     const profileRef = useRef<HTMLDivElement | null>(null);
+
     const router = useRouter();
     const queryClient = useQueryClient();
 
@@ -75,7 +74,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
         const currentUserId = parseInt(userDetails.id);
 
         const handleNewNotification = (notification: Notification) => {
-            console.log('🔔 New notification received in Navbar:', notification);
             if (notification.recipient_id && notification.recipient_id === currentUserId) {
                 setUnreadCount(prev => prev + 1);
                 queryClient.invalidateQueries({ queryKey: ['notifications'] });
@@ -103,8 +101,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
         window.addEventListener('notification-removed', handleCustomNotificationRemoved as EventListener);
 
         return () => {
-            // socket.off('new-notification', handleNewNotification);
-            // socket.off('notification-removed', handleNotificationRemoved);
             window.removeEventListener('new-notification', handleCustomNewNotification as EventListener);
             window.removeEventListener('notification-removed', handleCustomNotificationRemoved as EventListener);
         };
@@ -122,11 +118,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
             console.error(`Logout failed: ${error}`);
         }
     });
-
-    const handleNotificationClick = () => {
-        // Don't reset count here - let the notifications page handle it
-        // The count will be updated when notifications are marked as read
-    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -165,8 +156,8 @@ export default function Navbar({ userDetails }: NavbarProps) {
                         </Link>
 
                         {userDetails && (
-                            <div className="hidden md:block w-80">
-                                <SearchBar 
+                            <div className="hidden md:block w-3xl">
+                                <SearchBar
                                     placeholder='Search for recipes, ingredients, or Savoury users...'
                                 />
                             </div>
@@ -184,7 +175,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                 >
                                     <Link
                                         href={href}
-                                        onClick={href === '/notifications' ? handleNotificationClick : undefined}
                                         className="relative flex flex-col justify-center items-center p-2 text-foreground group-hover:text-primary-hover transition-colors group"
                                         aria-label={ariaLabel}
                                     >
@@ -217,16 +207,19 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                 >
-                                    <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-primary">
+                                    <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-primary">
                                         <Image
                                             src={userDetails.profile_image as string}
                                             alt={userDetails.fullname as string}
                                             fill
                                             loading='lazy'
-                                            sizes='48x48'
                                             className="object-cover"
                                         />
                                     </div>
+                                    <FontAwesomeIcon 
+                                        icon={showProfileDropdown ? faCaretDown : faCaretUp}
+                                        className="text-foreground transition-all duration-300"
+                                    />
                                 </motion.button>
 
                                 {/* Profile Dropdown */}
@@ -266,18 +259,14 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.4 + index * 0.1, duration: 0.3 }}
-                                    whileHover={{ y: -2 }}
                                 >
                                     <Link
                                         href={href}
                                         className="relative text-foreground hover:text-primary transition-all duration-300 font-medium group px-2 py-1"
                                     >
                                         {label}
-                                        <motion.span 
-                                            className="absolute -bottom-1 left-0 h-0.5 bg-primary rounded-full"
-                                            initial={{ width: 0 }}
-                                            whileHover={{ width: "100%" }}
-                                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                                        <span
+                                            className="absolute -bottom-1 left-0 h-0.5 w-0 group-hover:w-full bg-primary rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100"
                                         />
                                     </Link>
                                 </motion.li>
@@ -334,7 +323,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                             >
                                 <Link 
                                     href="/login" 
-                                    className="text-primary hover:text-primary-hover transition-all duration-300 font-medium px-3 py-2 rounded-lg hover:bg-primary/5"
+                                    className="text-primary hover:text-primary-hover transition-all duration-300 font-medium px-3 py-2 rounded-lg"
                                 >
                                     Login
                                 </Link>
@@ -346,7 +335,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                             >
                                 <Link 
                                     href="/register" 
-                                    className="bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary text-white px-6 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg transform"
+                                    className="bg-gradient-to-r from-primary to-primary-hover text-white px-6 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg transform"
                                 >
                                     Register
                                 </Link>
@@ -372,7 +361,6 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                     <div className="mb-4">
                                         <SearchBar 
                                             placeholder='Search for recipes, ingredients, or Savoury users...'
-                                            className="w-full"
                                         />
                                     </div>
 
@@ -437,10 +425,7 @@ export default function Navbar({ userDetails }: NavbarProps) {
                                             <Link 
                                                 href="/notifications" 
                                                 className="flex items-center justify-between text-foreground hover:text-primary transition-colors font-medium py-2"
-                                                onClick={() => {
-                                                    setIsMenuOpen(false);
-                                                    handleNotificationClick();
-                                                }}
+                                                onClick={() => setIsMenuOpen(false)}
                                             >
                                                 <div className="flex items-center space-x-3">
                                                     <FontAwesomeIcon icon={faBell} className="w-5 h-5" />

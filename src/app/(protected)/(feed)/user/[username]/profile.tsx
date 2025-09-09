@@ -24,7 +24,7 @@ import EditProfileModal from '@/components/EditProfileModal';
 
 interface ProfileProps {
     username: string;
-    currentUserId: number | null;
+    currentUserId: number;
 }
 
 const fadeInUp = {
@@ -380,10 +380,10 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                                 
                                                 <div className="flex items-center justify-between text-xs text-muted mb-3">
                                                     <div className="flex items-center gap-3">
-                                                        {recipe.prep_time_minutes && (
+                                                        {recipe.prep_time_value && (
                                                             <div className="flex items-center gap-1">
                                                                 <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
-                                                                <span>{formatTime(recipe.prep_time_minutes)}</span>
+                                                                <span>{formatTime(recipe.prep_time_value)}</span>
                                                             </div>
                                                         )}
                                                         {recipe.servings && (

@@ -5,6 +5,7 @@ import { motion } from 'motion/react';
 import { feed } from '@/services/Feed';
 import PostBlock from '@/components/PostBlock';
 import { FeedRecipe, FeedResponse } from '@/types/FeedResponse';
+import Image from 'next/image';
 
 const fadeIn = {
 	initial: { opacity: 0 },
@@ -13,13 +14,13 @@ const fadeIn = {
 };
 
 interface FeedPageProps {
-	currentUserId: number | null;
+	currentUserId: number;
 	currentUser: {
 		user_id: number;
 		profile_image: string;
 		fullname: string;
 		username: string;
-	} | null;
+	};
 }
 
 export default function FeedPage({ currentUserId, currentUser }: FeedPageProps) {
@@ -44,10 +45,15 @@ export default function FeedPage({ currentUserId, currentUser }: FeedPageProps) 
 								{...fadeIn}
 								className="text-center py-16"
 							>
-								<div className="max-w-4xl mx-auto">
-									<div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-										<span className="text-4xl">🍽️</span>
-									</div>
+								<div className="max-w-3xl mx-auto">
+									<Image 
+										src="/savoury-logo.png"
+										alt='Savoury Logo'
+										width={130}
+										height={130}
+										className="mx-auto mb-4"
+										priority
+									/>
 									<h3 className="text-xl font-semibold text-foreground mb-2">
 										No recipes yet
 									</h3>
@@ -66,7 +72,7 @@ export default function FeedPage({ currentUserId, currentUser }: FeedPageProps) 
 								{recipes.map((recipe: FeedRecipe) => (
 									<div
 										key={recipe.recipe_id}
-										className="w-5xl"
+										className="w-3xl"
 									>
 										<div className="border border-border rounded-xl overflow-hidden hover:shadow-md transition-all duration-300">
 											<PostBlock recipe={recipe} currentUserId={currentUserId} currentUser={currentUser} />
@@ -78,7 +84,7 @@ export default function FeedPage({ currentUserId, currentUser }: FeedPageProps) 
 					</div>
 
 					{/* Sidebar - 1/3 width, hidden on mobile */}
-					<div className="w-full lg:w-1/3 hidden lg:block">
+					<motion.div {...fadeIn} className="w-full lg:w-1/3 hidden lg:block">
 						<div className="sticky top-24 space-y-6">
 							{/* Footer Links */}
 							<div className="text-sm text-center text-muted space-y-2">
@@ -87,7 +93,7 @@ export default function FeedPage({ currentUserId, currentUser }: FeedPageProps) 
 								</p>
 							</div>
 						</div>
-					</div>
+					</motion.div>
 				</div>
 			</div>
 		</div>

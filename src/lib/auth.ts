@@ -63,14 +63,14 @@ export async function createSession(userId: number) {
         cookieStore.set('access_token', accessToken, {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24, // 1 day
+            maxAge: 60 * 60 * 24,
             path: '/',
         });
 
         cookieStore.set('refresh_token', refreshToken, {
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 30, // 30 days
+            maxAge: 60 * 60 * 24 * 30,
             path: '/',
         });
 
@@ -119,22 +119,26 @@ export async function getSession(): Promise<SessionData | null> {
 
 export async function getCurrentUser() {
     const session = await getSession() as SessionData;
-
-    try {
-        return await prisma.users.findUnique({
-            where: { user_id: session.userId },
-            select: {
-                user_id: true,
-                fullname: true,
-                email: true,
-                profile_image: true,
-                username: true,
-            }
-        });
-    } catch (error) {
-        console.error(`Error getting current user: ${error}`);
-        return null;
+    if (!session) {
+        throw new Error("No active session found", { cause: 401 });
     }
+
+    const users = await prisma.users.findUnique({
+        where: { user_id: session.userId },
+        select: {
+            user_id: true,
+            fullname: true,
+            email: true,
+            profile_image: true,
+            username: true,
+        }
+    });
+
+    if (!users) {
+        throw new Error("User not found", { cause: 404 });
+    }
+
+    return users;
 }
 
 export async function deleteSession() {

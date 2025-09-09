@@ -1,8 +1,8 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import SavedPage from "./saved";
 import { user } from "@/services/User";
-import { getSession } from "@/lib/auth";
+import SavedPage from "./saved";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
     title: "Your Saved Recipe Posts",
@@ -11,18 +11,17 @@ export const metadata: Metadata = {
 
 export default async function Saved() {
     const queryClient = new QueryClient();
-    const session = await getSession();
+    const currentUser = await getCurrentUser();
+    const userId = currentUser.user_id;
 
-    if (!session) return null;
-
-    await queryClient.prefetchQuery({
-        queryKey: ['saved'],
-        queryFn: () => user.getSavedRecipePosts(session?.userId),
+    await queryClient.fetchQuery({
+        queryKey: ['saved', userId],
+        queryFn: () => user.getSavedRecipePosts(userId),
     });
 
     return (
         <HydrationBoundary state={dehydrate(queryClient)}>
-            <SavedPage />
+            <SavedPage userId={userId} />
         </HydrationBoundary>
     )
 }

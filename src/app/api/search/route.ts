@@ -13,7 +13,6 @@ export async function GET(req: NextRequest) {
             }, { status: 400 });
         }
 
-        // --- Recipe Search via Elasticsearch ---
         const esResult = await elasticClient.search({
             index: 'savoury-index',
             size: 10,
@@ -87,7 +86,6 @@ export async function GET(req: NextRequest) {
             take: 10
         });
 
-        // --- Recipe Details via Prisma ---
         let recipes: any[] = [];
         if (recipeIds.length > 0) {
             recipes = await prisma.recipe.findMany({
@@ -159,9 +157,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             recipes: recipesSorted,
             users,
-            totalRecipes: typeof esResult.hits?.total === 'number'
-                ? esResult.hits.total
-                : esResult.hits?.total?.value ?? recipesSorted.length,
+            totalRecipes: recipesSorted.length,
             totalUsers: users.length
         }, { status: 200 });
     } catch (error) {

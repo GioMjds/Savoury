@@ -8,7 +8,17 @@ export async function GET(
     const { userId } = await params;
 
     try {
-        const searchParams = req.nextUrl.searchParams;
+        const savedItems = await prisma.bookmark.findMany({
+            where: { user_id: Number(userId) },
+            include: {
+                recipe: true,
+                user: true
+            }
+        });
+
+        return NextResponse.json({
+            bookmark: savedItems
+        }, { status: 200 });
     } catch (error) {
         return NextResponse.json({
             error: `/saved/[userId] GET error: ${error}`

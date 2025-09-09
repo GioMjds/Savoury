@@ -12,10 +12,10 @@ export default async function New() {
 
     return (
         <PostNewRecipe 
-            userId={data?.user_id as number} 
-            username={data?.username as string}
-            profileImage={data?.profile_image as string}
-            fullName={data?.fullname as string}
+            userId={data.user_id} 
+            username={data.username}
+            profileImage={data.profile_image}
+            fullName={data.fullname}
         />
     );
 }

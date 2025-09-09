@@ -26,7 +26,7 @@ const notificationTypes = {
 	default: { icon: faBell, color: 'text-primary' },
 };
 
-export default function NotifPage({ userId }: { userId: number | null }) {
+export default function NotifPage({ userId }: { userId: number }) {
 	const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all');
 	const { data, refetch } = useQuery({
 		queryKey: ['notifications', 1],
