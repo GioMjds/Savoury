@@ -5,6 +5,7 @@ import { FoodCategories } from '@/types/FeedResponse';
 import { getSession } from '@/lib/auth';
 import { elasticClient } from '@/configs/elasticsearch';
 import { TimeUnit } from '@prisma/client';
+import { validateRecipeForm, validateIngredients, validateInstructions, validateTimeAndServings } from '@/utils/validation';
 
 export async function GET(req: NextRequest) {
     try {
@@ -303,6 +304,40 @@ export async function POST(req: NextRequest) {
 				if (imageFile && imageFile.size > 0) {
 					try {
 						const arrayBuffer = await imageFile.arrayBuffer();
+                            const recipeData = {
+                                title,
+                                description,
+                                category,
+                            };
+                            const prepTimeValue = prep_time_value ? Number(prep_time_value) : undefined;
+                            const cookTimeValue = cook_time_value ? Number(cook_time_value) : undefined;
+                            const servingsValue = servings ? Number(servings) : undefined;
+
+                            const formErrors = validateRecipeForm(recipeData);
+                            const ingredientErrors = validateIngredients(ingredients);
+                            const instructionErrors = validateInstructions(instructions);
+                            const timeErrors = validateTimeAndServings(
+                                prepTimeValue,
+                                prep_time_unit,
+                                cookTimeValue,
+                                cook_time_unit,
+                                servingsValue
+                            );
+
+                            const allErrors = {
+                                ...formErrors,
+                                ...ingredientErrors,
+                                ...instructionErrors,
+                                ...timeErrors,
+                            };
+
+                            if (Object.keys(allErrors).length > 0) {
+                                return NextResponse.json({
+                                    error: 'Validation failed',
+                                    details: allErrors,
+                                }, { status: 400 });
+                            }
+
 						const buffer = Buffer.from(arrayBuffer);
 
 						const uploadResult = await new Promise<any>((resolve, reject) => {

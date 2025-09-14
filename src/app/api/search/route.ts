@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
                                     "fullname^2", 
                                     "title^2"
                                 ],
-                                boost: 1.5
+                                boost: 1
                             }
                         }
                     ],

@@ -158,12 +158,12 @@ export default function GetRecipePost({ recipeId, currentUserId }: RecipePostPro
                                         <StatCard
                                             icon={faClock}
                                             label="Prep Time"
-                                            value={recipeData.prep_time_minutes ? formatTime(Number(recipeData.prep_time_minutes)) : 'N/A'}
+                                            value={`${recipeData.prep_time_value} ${recipeData.prep_time_unit}`}
                                         />
                                         <StatCard
                                             icon={faClock}
                                             label="Cook Time"
-                                            value={recipeData.cook_time_minutes ? formatTime(Number(recipeData.cook_time_minutes)) : 'N/A'}
+                                            value={`${recipeData.cook_time_value} ${recipeData.cook_time_unit}`}
                                         />
                                         <StatCard
                                             icon={faUsers}

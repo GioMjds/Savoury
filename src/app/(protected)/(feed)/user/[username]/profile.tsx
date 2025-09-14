@@ -55,7 +55,7 @@ const scaleIn = {
 
 export default function ProfilePage({ username, currentUserId }: ProfileProps) {
     const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
-    
+
     const { data } = useQuery<UserProfileResponse>({
         queryKey: ['profile', username],
         queryFn: () => userService.fetchUserProfile(username),
@@ -332,7 +332,7 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                 </div>
                             ) : (
                                 <motion.div 
-                                    className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+                                    className="grid grid-cols-1 gap-6"
                                     variants={staggerContainer}
                                 >
                                     {userProfile.recipes.map((recipe) => (
@@ -383,13 +383,19 @@ export default function ProfilePage({ username, currentUserId }: ProfileProps) {
                                                         {recipe.prep_time_value && (
                                                             <div className="flex items-center gap-1">
                                                                 <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
-                                                                <span>{formatTime(recipe.prep_time_value)}</span>
+                                                                <span>Prep Time: {recipe.prep_time_value} {recipe.prep_time_unit}</span>
+                                                            </div>
+                                                        )}
+                                                        {recipe.cook_time_value && (
+                                                            <div className="flex items-center gap-1">
+                                                                <FontAwesomeIcon icon={faClock} className="w-3 h-3" />
+                                                                <span>Cook Time: {recipe.cook_time_value} {recipe.cook_time_unit}</span>
                                                             </div>
                                                         )}
                                                         {recipe.servings && (
                                                             <div className="flex items-center gap-1">
                                                                 <FontAwesomeIcon icon={faUsers} className="w-3 h-3" />
-                                                                <span>{recipe.servings}</span>
+                                                                <span>Servings: {recipe.servings}</span>
                                                             </div>
                                                         )}
                                                     </div>

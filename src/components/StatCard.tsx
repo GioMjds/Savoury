@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 interface StatCardProps {
 	icon: IconDefinition;
 	label: string;
-	value: string;
+	value: string | number;
 }
 
 export default function StatCard({
